@@ -1,0 +1,6 @@
+.*
+!.gitignore
+!.dockerignore
+node_modules/
+dist/
+/pocketbase/pb_data/

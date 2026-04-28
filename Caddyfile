@@ -1,0 +1,13 @@
+localhost {
+	handle /_* {
+		reverse_proxy localhost:8090
+	}
+
+	handle /api* {
+		reverse_proxy localhost:8090
+	}
+
+	handle {
+		reverse_proxy localhost:4321
+	}
+}
