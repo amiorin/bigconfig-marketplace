@@ -1,0 +1,50 @@
+---
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path === href || path.startsWith(href + '/');
+---
+
+<div
+  class="sticky top-0 z-50 border-b border-neutral-800/80 bg-neutral-950/85 backdrop-blur-md"
+>
+  <header class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a
+      href="/"
+      class="flex items-center gap-2 text-lg font-semibold tracking-tight text-white"
+    >
+      <span
+        class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-yellow-400 text-neutral-950 text-sm font-bold"
+        >B</span
+      >
+      <span>made with bigconfig</span>
+    </a>
+    <nav class="hidden gap-8 text-sm md:flex">
+      <a
+        href="/packages"
+        class:list={[
+          'transition hover:text-yellow-400',
+          isActive('/packages') ? 'text-yellow-400' : 'text-white',
+        ]}>Packages</a
+      >
+      <a
+        href="/submit"
+        class:list={[
+          'transition hover:text-yellow-400',
+          isActive('/submit') ? 'text-yellow-400' : 'text-white',
+        ]}>Submit</a
+      >
+      <a
+        href="/me"
+        class:list={[
+          'transition hover:text-yellow-400',
+          isActive('/me') ? 'text-yellow-400' : 'text-white',
+        ]}>My packages</a
+      >
+    </nav>
+    <a
+      href="/submit"
+      class="rounded-full bg-yellow-400 px-4 py-2 text-sm font-semibold text-neutral-950 transition hover:bg-yellow-300"
+      >Submit a package</a
+    >
+  </header>
+</div>

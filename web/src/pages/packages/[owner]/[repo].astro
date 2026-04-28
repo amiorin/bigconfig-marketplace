@@ -1,0 +1,134 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import TagChip from '~/components/TagChip.astro';
+import { fetchApprovedPackages, ownerRepo } from '~/lib/packages';
+import type { PackageRecord } from '~/lib/pb';
+
+export async function getStaticPaths() {
+  const all = await fetchApprovedPackages();
+  return all.map((p) => {
+    const { owner, repo } = ownerRepo(p.name);
+    return {
+      params: { owner, repo },
+      props: { pkg: p },
+    };
+  });
+}
+
+interface Props {
+  pkg: PackageRecord;
+}
+
+const { pkg } = Astro.props;
+const submitterName = pkg.expand?.submitter?.name || pkg.expand?.submitter?.id || 'unknown';
+const pushed = pkg.pushed_at
+  ? new Date(pkg.pushed_at).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
+  : null;
+---
+
+<Layout title={`${pkg.name} — Made with BigConfig`} description={pkg.description}>
+  <section class="mx-auto max-w-6xl px-6 pt-20 pb-12">
+    <a
+      href="/packages"
+      class="text-sm text-neutral-400 hover:text-yellow-400">← All packages</a
+    >
+    <div class="mt-6 flex flex-wrap items-start justify-between gap-6">
+      <div>
+        <h1
+          class="text-4xl font-semibold tracking-tight text-white md:text-5xl"
+        >
+          {pkg.name}
+        </h1>
+        <p class="mt-2 text-sm text-neutral-500">submitted by {submitterName}</p>
+        {
+          pkg.tags && pkg.tags.length > 0 && (
+            <div class="mt-4 flex flex-wrap gap-2">
+              {pkg.tags.map((t) => (
+                <TagChip tag={t} />
+              ))}
+            </div>
+          )
+        }
+      </div>
+      <a
+        href={pkg.github_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="rounded-full bg-yellow-400 px-6 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-yellow-300"
+        >View on GitHub →</a
+      >
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-6 pb-24">
+    <div class="grid gap-8 md:grid-cols-3">
+      <div class="md:col-span-2">
+        <div
+          class="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-8"
+        >
+          <h2 class="text-lg font-semibold text-white">About</h2>
+          <p class="mt-3 leading-relaxed text-neutral-300">
+            {pkg.description || 'No description provided.'}
+          </p>
+        </div>
+        {
+          pkg.og_image && (
+            <div class="mt-6 overflow-hidden rounded-2xl border border-neutral-800">
+              <img
+                src={pkg.og_image}
+                alt={`${pkg.name} preview`}
+                class="w-full"
+                loading="lazy"
+              />
+            </div>
+          )
+        }
+      </div>
+      <aside class="space-y-4">
+        <div class="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6">
+          <div class="text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+            Repository
+          </div>
+          <dl class="mt-3 space-y-3 text-sm">
+            <div class="flex justify-between gap-4">
+              <dt class="text-neutral-400">Stars</dt>
+              <dd class="text-white">{pkg.stars}</dd>
+            </div>
+            {
+              pkg.default_branch && (
+                <div class="flex justify-between gap-4">
+                  <dt class="text-neutral-400">Branch</dt>
+                  <dd class="text-white font-mono text-xs">
+                    {pkg.default_branch}
+                  </dd>
+                </div>
+              )
+            }
+            {
+              pushed && (
+                <div class="flex justify-between gap-4">
+                  <dt class="text-neutral-400">Last push</dt>
+                  <dd class="text-white">{pushed}</dd>
+                </div>
+              )
+            }
+          </dl>
+        </div>
+        <div class="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6">
+          <div class="text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+            Use it
+          </div>
+          <p class="mt-3 text-sm text-neutral-400">
+            Clone the repo, install BigConfig, and run the package's bb tasks.
+          </p>
+          <pre
+            class="mt-4 overflow-x-auto rounded-lg border border-neutral-800 bg-neutral-950 p-3 text-xs text-neutral-300"><code>git clone {pkg.github_url}</code></pre>
+        </div>
+      </aside>
+    </div>
+  </section>
+</Layout>

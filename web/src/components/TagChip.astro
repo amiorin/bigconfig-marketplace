@@ -1,0 +1,17 @@
+---
+interface Props {
+  tag: string;
+  active?: boolean;
+}
+const { tag, active = false } = Astro.props;
+---
+
+<span
+  class:list={[
+    'rounded-full px-2.5 py-0.5 text-xs',
+    active
+      ? 'bg-yellow-400 text-neutral-950'
+      : 'bg-neutral-800/80 text-neutral-300',
+  ]}
+  data-tag={tag}>{tag}</span
+>

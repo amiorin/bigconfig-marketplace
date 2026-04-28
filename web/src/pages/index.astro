@@ -1,0 +1,130 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import PackageCard from '~/components/PackageCard.astro';
+import { fetchApprovedPackages } from '~/lib/packages';
+
+const all = await fetchApprovedPackages();
+const recent = all.slice(0, 6);
+const totalCount = all.length;
+---
+
+<Layout title="Made with BigConfig — community marketplace">
+  <section class="mx-auto max-w-6xl px-6 pt-20 pb-28 text-center">
+    <div
+      class="mb-6 inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/60 px-4 py-1.5 text-xs font-medium text-neutral-300"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-yellow-400"></span>
+      Community marketplace · BigConfig packages
+    </div>
+    <h1
+      class="mx-auto max-w-4xl text-5xl font-semibold tracking-tight text-white md:text-7xl"
+    >
+      Made with<br />
+      <span
+        class="bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500 bg-clip-text text-transparent"
+        >BigConfig.</span
+      >
+    </h1>
+    <p class="mx-auto mt-6 max-w-2xl text-lg text-neutral-300 md:text-xl">
+      Browse community-built BigConfig packages. Or publish your own — turn the
+      runbook your agent generated into something the next operator can deploy.
+    </p>
+    <div
+      class="mx-auto mt-10 flex max-w-md flex-col items-stretch justify-center gap-4 px-4 sm:max-w-none sm:flex-row sm:items-center sm:px-0"
+    >
+      <a
+        href="/packages"
+        class="rounded-full bg-yellow-400 px-8 py-4 text-center text-base font-semibold text-neutral-950 transition hover:bg-yellow-300"
+        >Browse packages</a
+      >
+      <a
+        href="/submit"
+        class="rounded-full border border-neutral-700 px-8 py-4 text-center text-base font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
+        >Submit a package</a
+      >
+    </div>
+    <p class="mt-6 text-sm text-neutral-500">
+      For operators packaging what they already operate.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-6 py-12">
+    <div
+      class="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-800 md:grid-cols-4"
+    >
+      <div class="bg-neutral-950 p-6 text-center">
+        <div class="text-3xl font-semibold text-white md:text-4xl">
+          {totalCount}
+        </div>
+        <div class="mt-2 text-xs text-neutral-400 uppercase tracking-wider">
+          packages
+        </div>
+      </div>
+      <div class="bg-neutral-950 p-6 text-center">
+        <div class="text-3xl font-semibold text-white md:text-4xl">Open</div>
+        <div class="mt-2 text-xs text-neutral-400 uppercase tracking-wider">
+          submissions
+        </div>
+      </div>
+      <div class="bg-neutral-950 p-6 text-center">
+        <div class="text-3xl font-semibold text-white md:text-4xl">Source</div>
+        <div class="mt-2 text-xs text-neutral-400 uppercase tracking-wider">
+          on github
+        </div>
+      </div>
+      <div class="bg-neutral-950 p-6 text-center">
+        <div class="text-3xl font-semibold text-white md:text-4xl">Agent</div>
+        <div class="mt-2 text-xs text-neutral-400 uppercase tracking-wider">
+          ready
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="recent" class="mx-auto max-w-6xl px-6 py-24">
+    <div class="mb-16 text-center">
+      <div
+        class="mb-4 inline-block text-xs font-semibold tracking-widest text-yellow-400 uppercase"
+      >
+        Recent submissions
+      </div>
+      <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        Browse the shelf.
+      </h2>
+      <p class="mx-auto mt-4 max-w-2xl text-neutral-400">
+        Latest community-built BigConfig packages. New ones land every week.
+      </p>
+    </div>
+    {
+      recent.length === 0 ? (
+        <div class="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-10 text-center text-neutral-400">
+          <p>No packages yet — be the first to submit one.</p>
+          <a
+            href="/submit"
+            class="mt-6 inline-block rounded-full bg-yellow-400 px-6 py-3 text-sm font-semibold text-neutral-950 hover:bg-yellow-300"
+          >
+            Submit a package
+          </a>
+        </div>
+      ) : (
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {recent.map((p) => (
+            <PackageCard pkg={p} />
+          ))}
+        </div>
+      )
+    }
+    {
+      recent.length > 0 && (
+        <div class="mt-12 text-center">
+          <a
+            href="/packages"
+            class="rounded-full border border-neutral-700 px-6 py-3 text-sm font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
+          >
+            See all {totalCount} packages
+          </a>
+        </div>
+      )
+    }
+  </section>
+</Layout>
