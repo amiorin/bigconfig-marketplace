@@ -1,12 +1,10 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 // Initial schema for the `packages` collection.
-// Targets PocketBase v0.22.x.
+// Targets PocketBase v0.23+ (tested on v0.37.4).
 
 migrate(
-  (db) => {
-    const dao = new Dao(db);
-
+  (app) => {
     const tags = [
       // providers
       "digitalocean",
@@ -37,80 +35,101 @@ migrate(
     ];
 
     const collection = new Collection({
-      id: "pkg_packages_001",
-      name: "packages",
       type: "base",
-      schema: [
+      name: "packages",
+      listRule:
+        "status = 'approved' || (@request.auth.id != '' && submitter = @request.auth.id)",
+      viewRule:
+        "status = 'approved' || (@request.auth.id != '' && submitter = @request.auth.id)",
+      createRule: "@request.auth.id != ''",
+      updateRule: "@request.auth.id != '' && submitter = @request.auth.id",
+      deleteRule: "@request.auth.id != '' && submitter = @request.auth.id",
+      fields: [
         {
+          type: "text",
+          name: "id",
+          primaryKey: true,
+          required: true,
+          system: true,
+          autogeneratePattern: "[a-z0-9]{15}",
+          pattern: "^[a-z0-9]+$",
+          min: 15,
+          max: 15,
+        },
+        {
+          type: "url",
           name: "github_url",
-          type: "url",
           required: true,
-          options: {
-            exceptDomains: null,
-            onlyDomains: ["github.com"],
-          },
+          onlyDomains: ["github.com"],
         },
         {
+          type: "text",
           name: "name",
-          type: "text",
           required: true,
-          options: { min: 3, max: 200 },
+          min: 3,
+          max: 200,
         },
         {
+          type: "text",
           name: "description",
-          type: "text",
           required: false,
-          options: { max: 500 },
+          max: 500,
         },
         {
+          type: "select",
           name: "tags",
-          type: "select",
           required: false,
-          options: { maxSelect: 10, values: tags },
+          maxSelect: 10,
+          values: tags,
         },
         {
-          name: "submitter",
           type: "relation",
+          name: "submitter",
           required: true,
-          options: {
-            collectionId: "_pb_users_auth_",
-            cascadeDelete: false,
-            maxSelect: 1,
-            displayFields: ["name", "email"],
-          },
+          collectionId: "_pb_users_auth_",
+          cascadeDelete: false,
+          maxSelect: 1,
         },
         {
-          name: "status",
           type: "select",
+          name: "status",
           required: true,
-          options: {
-            maxSelect: 1,
-            values: ["pending", "approved", "rejected"],
-          },
+          maxSelect: 1,
+          values: ["pending", "approved", "rejected"],
         },
         {
-          name: "stars",
           type: "number",
+          name: "stars",
           required: false,
-          options: { min: 0 },
+          min: 0,
         },
         {
-          name: "default_branch",
           type: "text",
+          name: "default_branch",
           required: false,
-          options: { max: 100 },
+          max: 100,
         },
         {
-          name: "pushed_at",
           type: "date",
+          name: "pushed_at",
           required: false,
-          options: {},
         },
         {
-          name: "og_image",
           type: "url",
+          name: "og_image",
           required: false,
-          options: {},
+        },
+        {
+          type: "autodate",
+          name: "created",
+          onCreate: true,
+          onUpdate: false,
+        },
+        {
+          type: "autodate",
+          name: "updated",
+          onCreate: true,
+          onUpdate: true,
         },
       ],
       indexes: [
@@ -118,24 +137,12 @@ migrate(
         "CREATE UNIQUE INDEX `idx_packages_name` ON `packages` (`name`)",
         "CREATE INDEX `idx_packages_status` ON `packages` (`status`)",
       ],
-      // List/view: approved rows are public; submitter sees own pending/rejected.
-      listRule:
-        'status = "approved" || (@request.auth.id != "" && submitter = @request.auth.id)',
-      viewRule:
-        'status = "approved" || (@request.auth.id != "" && submitter = @request.auth.id)',
-      // Anyone signed in can create. Hook forces status=pending and submitter=auth.
-      createRule: '@request.auth.id != ""',
-      // Submitters edit their own rows; hook strips protected fields.
-      updateRule: "@request.auth.id != \"\" && submitter = @request.auth.id",
-      // Delete: own rows. Admins can always delete via admin UI.
-      deleteRule: "@request.auth.id != \"\" && submitter = @request.auth.id",
     });
 
-    return dao.saveCollection(collection);
+    return app.save(collection);
   },
-  (db) => {
-    const dao = new Dao(db);
-    const collection = dao.findCollectionByNameOrId("packages");
-    return dao.deleteCollection(collection);
+  (app) => {
+    const collection = app.findCollectionByNameOrId("packages");
+    return app.delete(collection);
   }
 );

@@ -1,15 +1,15 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-// Hooks for the `packages` collection. Targets PocketBase v0.22.x.
+// Hooks for the `packages` collection. Targets PocketBase v0.23+ (v0.37.4).
 //
 // Responsibilities:
-//   1. On create — derive `name` from `github_url`, force status=pending,
-//      set submitter from the authed user.
-//   2. After create — fetch GitHub metadata and persist it.
-//   3. On update — strip protected fields from non-admin requests.
-//   4. After create / update / delete of an approved record — POST a
-//      `repository_dispatch` to GitHub to rebuild the static site.
-//   5. Nightly cron — refresh GitHub metadata for all approved records.
+//   1. On create request — derive `name` from `github_url`, force
+//      status=pending, set submitter from the authed user.
+//   2. After create success — fetch GitHub metadata and persist it.
+//   3. On update request — strip protected fields from non-superuser changes.
+//   4. After create / update / delete success — POST repository_dispatch to
+//      GitHub when the change affects the public listing.
+//   5. Nightly cron — refresh GitHub metadata for approved records.
 
 const PROTECTED_FIELDS = [
   "github_url",
@@ -51,8 +51,7 @@ function fetchGithubMeta(name) {
       stars: j.stargazers_count || 0,
       default_branch: j.default_branch || "",
       pushed_at: j.pushed_at || "",
-      og_image:
-        "https://opengraph.githubassets.com/1/" + name,
+      og_image: "https://opengraph.githubassets.com/1/" + name,
     };
   } catch (err) {
     console.log("[packages] github fetch failed for " + name + ": " + err);
@@ -61,11 +60,11 @@ function fetchGithubMeta(name) {
 }
 
 function dispatchRebuild(reason) {
-  const repo = $os.getenv("DISPATCH_REPO"); // e.g. "amiorin/bigconfig-marketplace"
+  const repo = $os.getenv("DISPATCH_REPO");
   const pat = $os.getenv("DISPATCH_PAT");
   if (!repo || !pat) {
     console.log(
-      "[packages] dispatch skipped (DISPATCH_REPO or DISPATCH_PAT unset): " +
+      "[packages] dispatch skipped (DISPATCH_REPO/DISPATCH_PAT unset): " +
         reason
     );
     return;
@@ -75,8 +74,8 @@ function dispatchRebuild(reason) {
       url: "https://api.github.com/repos/" + repo + "/dispatches",
       method: "POST",
       headers: {
-        "Accept": "application/vnd.github+json",
-        "Authorization": "Bearer " + pat,
+        Accept: "application/vnd.github+json",
+        Authorization: "Bearer " + pat,
         "User-Agent": "bigconfig-marketplace",
         "Content-Type": "application/json",
       },
@@ -92,9 +91,20 @@ function dispatchRebuild(reason) {
   }
 }
 
+function isSuperuser(auth) {
+  try {
+    return auth && auth.collection().name === "_superusers";
+  } catch (err) {
+    return false;
+  }
+}
+
 // ---- 1. Before create: derive name, force pending, assign submitter ----
 
-onRecordBeforeCreateRequest((e) => {
+onRecordCreateRequest((e) => {
+  if (!e.auth) {
+    throw new BadRequestError("must be signed in");
+  }
   const url = e.record.getString("github_url");
   const name = parseGithubName(url);
   if (!name) {
@@ -105,16 +115,13 @@ onRecordBeforeCreateRequest((e) => {
   e.record.set("name", name);
   e.record.set("status", "pending");
   e.record.set("stars", 0);
-  const auth = e.httpContext.get("authRecord");
-  if (!auth) {
-    throw new BadRequestError("must be signed in");
-  }
-  e.record.set("submitter", auth.id);
+  e.record.set("submitter", e.auth.id);
+  e.next();
 }, "packages");
 
 // ---- 2. After create: enrich from GitHub ----
 
-onRecordAfterCreateRequest((e) => {
+onRecordAfterCreateSuccess((e) => {
   const meta = fetchGithubMeta(e.record.getString("name"));
   if (!meta) return;
   if (!e.record.getString("description") && meta.description) {
@@ -124,40 +131,43 @@ onRecordAfterCreateRequest((e) => {
   e.record.set("default_branch", meta.default_branch);
   if (meta.pushed_at) e.record.set("pushed_at", meta.pushed_at);
   if (meta.og_image) e.record.set("og_image", meta.og_image);
-  $app.dao().saveRecord(e.record);
+  try {
+    e.app.save(e.record);
+  } catch (err) {
+    console.log("[packages] enrichment save failed: " + err);
+  }
 }, "packages");
 
-// ---- 3. Before update: strip protected fields from non-admin requests ----
+// ---- 3. Before update: strip protected fields from non-superuser requests --
 
-onRecordBeforeUpdateRequest((e) => {
-  // Admin updates (no auth record on httpContext but admin token) bypass.
-  const admin = e.httpContext.get("admin");
-  if (admin) return;
-
+onRecordUpdateRequest((e) => {
+  if (isSuperuser(e.auth)) {
+    e.next();
+    return;
+  }
   const original = e.record.original();
   for (const field of PROTECTED_FIELDS) {
     e.record.set(field, original.get(field));
   }
+  e.next();
 }, "packages");
 
 // ---- 4. Dispatch on changes that affect the public listing ----
 
-onRecordAfterCreateRequest((e) => {
+onRecordAfterCreateSuccess((e) => {
   if (e.record.getString("status") === "approved") {
     dispatchRebuild("create:" + e.record.getString("name"));
   }
 }, "packages");
 
-onRecordAfterUpdateRequest((e) => {
-  const status = e.record.getString("status");
-  const original = e.record.original();
-  const wasApproved = original.getString("status") === "approved";
-  if (status === "approved" || wasApproved) {
-    dispatchRebuild("update:" + e.record.getString("name"));
-  }
+onRecordAfterUpdateSuccess((e) => {
+  // Fire on any update of a packages record. The CI rebuild is fast and
+  // idempotent; deciding "was approved before/after" is brittle in After
+  // hooks where original() may not reflect pre-save state.
+  dispatchRebuild("update:" + e.record.getString("name"));
 }, "packages");
 
-onRecordAfterDeleteRequest((e) => {
+onRecordAfterDeleteSuccess((e) => {
   if (e.record.getString("status") === "approved") {
     dispatchRebuild("delete:" + e.record.getString("name"));
   }
@@ -166,9 +176,13 @@ onRecordAfterDeleteRequest((e) => {
 // ---- 5. Nightly GitHub metadata refresh ----
 
 cronAdd("packages-github-refresh", "0 3 * * *", () => {
-  const records = $app
-    .dao()
-    .findRecordsByFilter("packages", 'status = "approved"', "-pushed_at", 0, 0);
+  const records = $app.findRecordsByFilter(
+    "packages",
+    "status = 'approved'",
+    "-pushed_at",
+    0,
+    0
+  );
   let touched = 0;
   for (const rec of records) {
     const meta = fetchGithubMeta(rec.getString("name"));
@@ -178,7 +192,7 @@ cronAdd("packages-github-refresh", "0 3 * * *", () => {
     if (meta.pushed_at) rec.set("pushed_at", meta.pushed_at);
     if (meta.og_image) rec.set("og_image", meta.og_image);
     try {
-      $app.dao().saveRecord(rec);
+      $app.save(rec);
       touched++;
     } catch (err) {
       console.log(
