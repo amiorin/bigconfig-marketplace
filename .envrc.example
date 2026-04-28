@@ -1,0 +1,12 @@
+export GOOGLE_CLIENT_ID=
+export GOOGLE_CLIENT_SECRET=
+
+# Where the build-time fetch and the browser SDK should reach PocketBase.
+# - In dev, point at your local PB instance (or https://localhost via Caddy).
+# - In CI, point at the prod PB so SSG fetches the live data.
+# - At runtime in prod, the page is served same-origin from PB so '' works
+#   (set this to '' in the deployed image).
+export PUBLIC_PB_URL=https://localhost
+
+# Make Node (Astro dev SSG fetch) trust Caddy's local CA.
+export NODE_EXTRA_CA_CERTS="$HOME/Library/Application Support/Caddy/pki/authorities/local/root.crt"
