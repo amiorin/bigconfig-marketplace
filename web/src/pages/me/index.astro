@@ -27,7 +27,7 @@ import Layout from '~/layouts/Layout.astro';
         <button
           id="signout"
           type="button"
-          class="rounded-full border border-neutral-700 px-5 py-2.5 text-sm font-semibold text-neutral-200 hover:border-neutral-500 hover:text-white"
+          class="hidden rounded-full border border-neutral-700 px-5 py-2.5 text-sm font-semibold text-neutral-200 hover:border-neutral-500 hover:text-white"
           >Sign out</button
         >
       </div>
@@ -103,6 +103,7 @@ import Layout from '~/layouts/Layout.astro';
       gate.classList.remove('hidden');
       return;
     }
+    signout.classList.remove('hidden');
     const me = pb.authStore.record;
     userLine.textContent = `Signed in as ${me?.name || me?.email || me?.id}.`;
     try {
