@@ -103,6 +103,7 @@ import { TAG_GROUPS } from '~/lib/tags';
 
 <script>
   import PocketBase from 'pocketbase';
+  import { formatPbError } from '../lib/pb';
 
   const pb = new PocketBase(import.meta.env.PUBLIC_PB_URL || '');
   const gate = document.getElementById('auth-gate')!;
@@ -138,11 +139,7 @@ import { TAG_GROUPS } from '~/lib/tags';
       setTimeout(() => (location.href = '/me'), 1500);
     } catch (err: any) {
       console.error(err);
-      const msg =
-        err?.data?.data?.github_url?.message ||
-        err?.message ||
-        'Submission failed.';
-      status.textContent = msg;
+      status.textContent = formatPbError(err, 'Submission failed.');
       button.disabled = false;
     }
   });

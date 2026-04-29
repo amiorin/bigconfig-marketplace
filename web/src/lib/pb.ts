@@ -4,6 +4,29 @@ const url = import.meta.env.PUBLIC_PB_URL ?? '';
 
 export const pb = new PocketBase(url);
 
+const FIELD_LABELS: Record<string, string> = {
+  tags: 'Tags',
+  github_url: 'GitHub URL',
+  description: 'Description',
+};
+
+export function formatPbError(err: any, fallback = 'Request failed.'): string {
+  const fields = err?.data?.data;
+  if (fields && typeof fields === 'object') {
+    const parts: string[] = [];
+    for (const [field, info] of Object.entries(fields as Record<string, { code?: string; message?: string }>)) {
+      const label = FIELD_LABELS[field] ?? field;
+      if (info?.code === 'validation_too_many_values') {
+        parts.push(`${label}: too many values selected (max 10).`);
+      } else if (info?.message) {
+        parts.push(`${label}: ${info.message}`);
+      }
+    }
+    if (parts.length) return parts.join(' ');
+  }
+  return err?.message || fallback;
+}
+
 export interface PackageRecord extends RecordModel {
   github_url: string;
   name: string;
