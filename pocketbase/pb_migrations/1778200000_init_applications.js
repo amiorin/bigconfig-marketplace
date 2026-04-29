@@ -8,18 +8,6 @@
 migrate(
   (app) => {
     const tags = [
-      // providers
-      "digitalocean",
-      "hcloud",
-      "oci",
-      "no-infra",
-      "cloudflare",
-      "resend",
-      "s3",
-      // tools
-      "opentofu",
-      "ansible",
-      "docker",
       // category
       "database",
       "cache",

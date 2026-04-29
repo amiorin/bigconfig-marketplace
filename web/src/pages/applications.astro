@@ -2,7 +2,7 @@
 import Layout from '~/layouts/Layout.astro';
 import ApplicationCard from '~/components/ApplicationCard.astro';
 import { fetchApprovedApplications } from '~/lib/applications';
-import { TAG_GROUPS } from '~/lib/tags';
+import { APPLICATION_TAG_GROUPS as TAG_GROUPS } from '~/lib/tags';
 
 const all = await fetchApprovedApplications();
 ---

@@ -119,14 +119,24 @@ When a signed-in user submits a `github_url`, hooks in
 1. derive `name` from the URL, force `status = pending`, set `submitter`;
 2. fetch the repo metadata from the GitHub API (description, stars, default
    branch, pushed_at, OG image) and save it back;
-3. lock down protected fields so only superusers can flip `status` to
+3. lock down protected fields (`github_url`, `name`, `submitter`, `status`,
+   `stars`, `default_branch`, `pushed_at`, `og_image`) so only superusers can
+   modify them — in particular, only a superuser can flip `status` to
    `approved`;
-4. on approve / update / nightly cron, fire a `repository_dispatch` to rebuild
-   and republish the image.
+4. on approve / update / nightly cron (`0 3 * * *` refreshes GitHub stats),
+   fire a `repository_dispatch` (`event_type: rebuild-site`) to rebuild and
+   republish the image. Requires `DISPATCH_REPO` and `DISPATCH_PAT`; otherwise
+   logs and skips.
 
 List/view rules expose only `approved` records publicly; submitters can also
 see and edit their own pending records.
 
+### Hook authoring constraint
+
+PocketBase's JSVM does not share top-level scope with hook callbacks. Helpers
+in `pb_hooks/utils.js` must be `require()`'d **inside** each callback — see
+the existing pattern in `packages.pb.js`. Don't hoist requires to the top.
+
 ## License
 
-TBD.
+MIT
