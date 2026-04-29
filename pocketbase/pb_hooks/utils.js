@@ -125,8 +125,58 @@ function parseDockerImage(image) {
   return { registry: registry, repo: repo, tag: tag };
 }
 
+// Parse a `WWW-Authenticate: Bearer realm="...",service="...",scope="..."` header.
+function parseBearerChallenge(header) {
+  if (!header) return null;
+  const s = String(header);
+  if (s.slice(0, 7).toLowerCase() !== "bearer ") return null;
+  const params = {};
+  const re = /(\w+)="([^"]*)"/g;
+  let m;
+  while ((m = re.exec(s)) !== null) {
+    params[m[1].toLowerCase()] = m[2];
+  }
+  if (!params.realm) return null;
+  return params;
+}
+
+function getHeader(res, name) {
+  if (!res || !res.headers) return "";
+  // Go canonicalizes header names (e.g. "Www-Authenticate"), but be defensive.
+  const want = name.toLowerCase();
+  for (const k of Object.keys(res.headers)) {
+    if (k.toLowerCase() === want) {
+      const v = res.headers[k];
+      return Array.isArray(v) ? v[0] || "" : String(v || "");
+    }
+  }
+  return "";
+}
+
+function fetchAnonymousToken(challenge) {
+  let url = challenge.realm;
+  const qs = [];
+  if (challenge.service) qs.push("service=" + encodeURIComponent(challenge.service));
+  if (challenge.scope) qs.push("scope=" + encodeURIComponent(challenge.scope));
+  if (qs.length) url += (url.indexOf("?") === -1 ? "?" : "&") + qs.join("&");
+  try {
+    const res = $http.send({
+      url: url,
+      method: "GET",
+      headers: { "User-Agent": "bigconfig-marketplace" },
+      timeout: 10,
+    });
+    if (res.statusCode !== 200 || !res.json) return "";
+    return res.json.token || res.json.access_token || "";
+  } catch (err) {
+    return "";
+  }
+}
+
 // Validate that a public Docker image is reachable (manifest exists).
-// Throws BadRequestError if the image is unreachable or the registry requires auth.
+// Handles the OCI Distribution token-auth challenge: on 401, parses the
+// WWW-Authenticate header, fetches an anonymous token, and retries.
+// Throws BadRequestError if the image is unreachable or genuinely private.
 function validateDockerImage(image) {
   const parsed = parseDockerImage(image);
   if (!parsed) {
@@ -137,51 +187,44 @@ function validateDockerImage(image) {
 
   const accept =
     "application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json";
+  const manifestUrl =
+    "https://" + parsed.registry + "/v2/" + parsed.repo + "/manifests/" + parsed.tag;
 
-  let token = "";
-  if (parsed.registry === "registry-1.docker.io") {
-    try {
-      const tr = $http.send({
-        url:
-          "https://auth.docker.io/token?service=registry.docker.io&scope=repository:" +
-          parsed.repo +
-          ":pull",
-        method: "GET",
-        headers: { "User-Agent": "bigconfig-marketplace" },
-        timeout: 10,
-      });
-      if (tr.statusCode === 200 && tr.json && tr.json.token) {
-        token = tr.json.token;
-      }
-    } catch (err) {
-      // fall through and let the manifest call surface the error
-    }
-  }
-
-  const headers = {
-    "User-Agent": "bigconfig-marketplace",
-    Accept: accept,
-  };
-  if (token) headers["Authorization"] = "Bearer " + token;
-
-  let res;
-  try {
-    res = $http.send({
-      url:
-        "https://" +
-        parsed.registry +
-        "/v2/" +
-        parsed.repo +
-        "/manifests/" +
-        parsed.tag,
+  function callManifest(token) {
+    const headers = {
+      "User-Agent": "bigconfig-marketplace",
+      Accept: accept,
+    };
+    if (token) headers["Authorization"] = "Bearer " + token;
+    return $http.send({
+      url: manifestUrl,
       method: "GET",
       headers: headers,
       timeout: 15,
     });
+  }
+
+  let res;
+  try {
+    res = callManifest("");
   } catch (err) {
-    throw new BadRequestError(
-      "could not reach registry for " + image + ": " + err
-    );
+    throw new BadRequestError("could not reach registry for " + image + ": " + err);
+  }
+
+  if (res.statusCode === 401) {
+    const challenge = parseBearerChallenge(getHeader(res, "Www-Authenticate"));
+    if (challenge) {
+      const token = fetchAnonymousToken(challenge);
+      if (token) {
+        try {
+          res = callManifest(token);
+        } catch (err) {
+          throw new BadRequestError(
+            "could not reach registry for " + image + ": " + err
+          );
+        }
+      }
+    }
   }
 
   if (res.statusCode === 401 || res.statusCode === 403) {
