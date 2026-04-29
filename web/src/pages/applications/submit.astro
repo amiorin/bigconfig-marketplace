@@ -1,0 +1,161 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import { TAG_GROUPS } from '~/lib/tags';
+---
+
+<Layout title="Submit an application — Made with BigConfig">
+  <section class="mx-auto max-w-3xl px-6 pt-20 pb-24">
+    <div class="text-center">
+      <div
+        class="mb-4 inline-block text-xs font-semibold tracking-widest text-yellow-400 uppercase"
+      >
+        Submit
+      </div>
+      <h1 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        Add your application.
+      </h1>
+      <p class="mx-auto mt-4 max-w-xl text-neutral-400">
+        A ONCE application is a Docker container that serves HTTP on :80, has a
+        /up healthcheck, and persists data in /storage. We'll verify the image
+        is publicly pullable.
+      </p>
+    </div>
+
+    <div
+      id="auth-gate"
+      class="mt-12 hidden rounded-2xl border border-neutral-800 bg-neutral-900/40 p-10 text-center"
+    >
+      <p class="text-neutral-300">You need to sign in to submit an application.</p>
+      <a
+        href="/login?next=/applications/submit"
+        class="mt-6 inline-block rounded-full bg-yellow-400 px-6 py-3 text-sm font-semibold text-neutral-950 hover:bg-yellow-300"
+        >Sign in with Google</a
+      >
+    </div>
+
+    <form
+      id="submit-form"
+      class="mt-12 hidden grid gap-5 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-8 md:p-10"
+    >
+      <label class="block text-sm">
+        <span class="mb-2 block font-medium text-neutral-200">GitHub URL</span>
+        <input
+          name="github_url"
+          type="url"
+          required
+          placeholder="https://github.com/owner/repo"
+          class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:border-yellow-400"
+        />
+      </label>
+      <label class="block text-sm">
+        <span class="mb-2 block font-medium text-neutral-200">Docker image</span>
+        <input
+          name="docker_image"
+          type="text"
+          required
+          placeholder="ghcr.io/owner/app:v1"
+          class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 font-mono text-white placeholder-neutral-500 outline-none focus:border-yellow-400"
+        />
+        <span class="mt-1 block text-xs text-neutral-500"
+          >Public registries only. Format: <code>[registry/]repo[:tag]</code>.</span
+        >
+      </label>
+      <label class="block text-sm">
+        <span class="mb-2 block font-medium text-neutral-200"
+          >Description (optional — pulled from GitHub if blank)</span
+        >
+        <textarea
+          name="description"
+          rows="3"
+          class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:border-yellow-400"
+        ></textarea>
+      </label>
+      <div>
+        <span class="mb-2 block text-sm font-medium text-neutral-200">Tags</span
+        >
+        <div class="space-y-3">
+          {
+            TAG_GROUPS.map((group) => (
+              <div>
+                <div class="mb-1.5 text-xs font-semibold tracking-wider text-neutral-500 uppercase">
+                  {group.label}
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  {group.tags.map((t) => (
+                    <label class="cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="tags"
+                        value={t}
+                        class="peer sr-only"
+                      />
+                      <span class="rounded-full bg-neutral-800/80 px-2.5 py-0.5 text-xs text-neutral-300 transition peer-checked:bg-yellow-400 peer-checked:text-neutral-950">
+                        {t}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+      <button
+        type="submit"
+        class="mt-2 rounded-full bg-yellow-400 px-6 py-4 text-base font-semibold text-neutral-950 transition hover:bg-yellow-300 disabled:opacity-60"
+      >
+        Submit for review
+      </button>
+      <p
+        id="form-status"
+        class="hidden text-center text-sm text-neutral-400"
+      >
+      </p>
+    </form>
+  </section>
+</Layout>
+
+<script>
+  import PocketBase from 'pocketbase';
+  import { formatPbError } from '../../lib/pb';
+
+  const pb = new PocketBase(import.meta.env.PUBLIC_PB_URL || '');
+  const gate = document.getElementById('auth-gate')!;
+  const form = document.getElementById('submit-form') as HTMLFormElement;
+  const status = document.getElementById('form-status')!;
+
+  if (!pb.authStore.isValid) {
+    gate.classList.remove('hidden');
+  } else {
+    form.classList.remove('hidden');
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const button = form.querySelector(
+      'button[type=submit]'
+    ) as HTMLButtonElement;
+    const data = new FormData(form);
+    const tags = data.getAll('tags') as string[];
+    const payload = {
+      github_url: data.get('github_url'),
+      docker_image: data.get('docker_image'),
+      description: data.get('description'),
+      tags,
+    };
+    button.disabled = true;
+    status.classList.remove('hidden');
+    status.textContent = 'Submitting (verifying image)…';
+    try {
+      await pb.collection('applications').create(payload);
+      status.textContent =
+        "Submitted. We'll review it shortly — you can track it on /me/applications.";
+      form.reset();
+      setTimeout(() => (location.href = '/me/applications'), 1500);
+    } catch (err: any) {
+      console.error(err);
+      status.textContent = formatPbError(err, 'Submission failed.');
+      button.disabled = false;
+    }
+  });
+</script>

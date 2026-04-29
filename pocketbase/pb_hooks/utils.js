@@ -10,6 +10,7 @@ const PROTECTED_FIELDS = [
   "default_branch",
   "pushed_at",
   "og_image",
+  "docker_image",
 ];
 
 function parseGithubName(url) {
@@ -89,10 +90,121 @@ function isSuperuser(auth) {
   }
 }
 
+// Parse `[registry/]repo[:tag]` into { registry, repo, tag }.
+// Defaults: Docker Hub registry, `latest` tag, `library/` prefix for single-segment Hub repos.
+function parseDockerImage(image) {
+  if (!image) return null;
+  let s = String(image).trim();
+  if (!s) return null;
+
+  let registry = "registry-1.docker.io";
+  let rest = s;
+  const slash = s.indexOf("/");
+  if (slash !== -1) {
+    const head = s.slice(0, slash);
+    if (head.indexOf(".") !== -1 || head.indexOf(":") !== -1 || head === "localhost") {
+      registry = head;
+      rest = s.slice(slash + 1);
+    }
+  }
+
+  let tag = "latest";
+  const colon = rest.lastIndexOf(":");
+  const slashAfter = rest.lastIndexOf("/");
+  if (colon !== -1 && colon > slashAfter) {
+    tag = rest.slice(colon + 1);
+    rest = rest.slice(0, colon);
+  }
+
+  let repo = rest;
+  if (registry === "registry-1.docker.io" && repo.indexOf("/") === -1) {
+    repo = "library/" + repo;
+  }
+
+  if (!repo || !tag) return null;
+  return { registry: registry, repo: repo, tag: tag };
+}
+
+// Validate that a public Docker image is reachable (manifest exists).
+// Throws BadRequestError if the image is unreachable or the registry requires auth.
+function validateDockerImage(image) {
+  const parsed = parseDockerImage(image);
+  if (!parsed) {
+    throw new BadRequestError(
+      "docker_image must look like [registry/]repo[:tag], e.g. ghcr.io/owner/app:v1"
+    );
+  }
+
+  const accept =
+    "application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json";
+
+  let token = "";
+  if (parsed.registry === "registry-1.docker.io") {
+    try {
+      const tr = $http.send({
+        url:
+          "https://auth.docker.io/token?service=registry.docker.io&scope=repository:" +
+          parsed.repo +
+          ":pull",
+        method: "GET",
+        headers: { "User-Agent": "bigconfig-marketplace" },
+        timeout: 10,
+      });
+      if (tr.statusCode === 200 && tr.json && tr.json.token) {
+        token = tr.json.token;
+      }
+    } catch (err) {
+      // fall through and let the manifest call surface the error
+    }
+  }
+
+  const headers = {
+    "User-Agent": "bigconfig-marketplace",
+    Accept: accept,
+  };
+  if (token) headers["Authorization"] = "Bearer " + token;
+
+  let res;
+  try {
+    res = $http.send({
+      url:
+        "https://" +
+        parsed.registry +
+        "/v2/" +
+        parsed.repo +
+        "/manifests/" +
+        parsed.tag,
+      method: "GET",
+      headers: headers,
+      timeout: 15,
+    });
+  } catch (err) {
+    throw new BadRequestError(
+      "could not reach registry for " + image + ": " + err
+    );
+  }
+
+  if (res.statusCode === 401 || res.statusCode === 403) {
+    throw new BadRequestError(
+      "docker_image is not publicly pullable (registry requires auth): " + image
+    );
+  }
+  if (res.statusCode === 404) {
+    throw new BadRequestError("docker_image not found: " + image);
+  }
+  if (res.statusCode < 200 || res.statusCode >= 300) {
+    throw new BadRequestError(
+      "docker_image check failed (HTTP " + res.statusCode + "): " + image
+    );
+  }
+}
+
 module.exports = {
   PROTECTED_FIELDS,
   parseGithubName,
   fetchGithubMeta,
   dispatchRebuild,
   isSuperuser,
+  parseDockerImage,
+  validateDockerImage,
 };

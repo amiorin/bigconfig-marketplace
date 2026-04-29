@@ -27,6 +27,13 @@ const isActive = (href: string) =>
         ]}>Packages</a
       >
       <a
+        href="/applications"
+        class:list={[
+          'transition hover:text-yellow-400',
+          isActive('/applications') ? 'text-yellow-400' : 'text-white',
+        ]}>Applications</a
+      >
+      <a
         href="/submit"
         class:list={[
           'transition hover:text-yellow-400',

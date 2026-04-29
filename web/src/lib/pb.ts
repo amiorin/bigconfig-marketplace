@@ -8,6 +8,7 @@ const FIELD_LABELS: Record<string, string> = {
   tags: 'Tags',
   github_url: 'GitHub URL',
   description: 'Description',
+  docker_image: 'Docker image',
 };
 
 export function formatPbError(err: any, fallback = 'Request failed.'): string {
@@ -25,6 +26,10 @@ export function formatPbError(err: any, fallback = 'Request failed.'): string {
     if (parts.length) return parts.join(' ');
   }
   return err?.message || fallback;
+}
+
+export interface ApplicationRecord extends PackageRecord {
+  docker_image: string;
 }
 
 export interface PackageRecord extends RecordModel {
