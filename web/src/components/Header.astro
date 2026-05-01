@@ -1,4 +1,6 @@
 ---
+import logo from '~/assets/logo.svg';
+
 const path = Astro.url.pathname;
 const isActive = (href: string) =>
   href === '/' ? path === '/' : path === href || path.startsWith(href + '/');
@@ -8,15 +10,8 @@ const isActive = (href: string) =>
   class="sticky top-0 z-50 border-b border-neutral-800/80 bg-neutral-950/85 backdrop-blur-md"
 >
   <header class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-    <a
-      href="/"
-      class="flex items-center gap-2 text-lg font-semibold tracking-tight text-white"
-    >
-      <span
-        class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-yellow-400 text-neutral-950 text-sm font-bold"
-        >B</span
-      >
-      <span>BigConfig Marketplace</span>
+    <a href="/" aria-label="BigConfig Marketplace" class="flex items-center">
+      <img src={logo.src} alt="" class="h-7 w-auto" />
     </a>
     <nav class="hidden gap-8 text-sm md:flex">
       <a
