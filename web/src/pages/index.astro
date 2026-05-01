@@ -151,9 +151,9 @@ const totalCount = packageCount + applicationCount;
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {recent.map((item) =>
             item.kind === 'package' ? (
-              <PackageCard pkg={item.record} />
+              <PackageCard pkg={item.record} showType />
             ) : (
-              <ApplicationCard app={item.record} />
+              <ApplicationCard app={item.record} showType />
             )
           )}
         </div>
