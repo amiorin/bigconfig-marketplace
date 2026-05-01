@@ -162,7 +162,8 @@ Use the same explicit directory flags for `pocketbase superuser upsert`.
 - `PUBLIC_PB_URL` — absolute origin where the browser/SDK reaches PocketBase. Build-time, baked into the static bundle. Must not be `''` or relative (breaks Google SSO via page-path-relative URLs). Dockerfile default is `https://localhost`.
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth credentials. Not consumed as env vars; configured manually in PB admin → Settings → Auth providers → Google. The `.envrc.example` entries are reference holders only.
 - `GITHUB_TOKEN` — optional, raises rate limit for the GitHub API enrichment in `utils.js`.
-- `DISPATCH_REPO` (e.g. `owner/repo`) and `DISPATCH_PAT` — required for `dispatchRebuild` to trigger the rebuild workflow. Without them, hooks log and skip.
+- `DISPATCH_REPO` — target repository in `owner/repo` form that receives the `repository_dispatch` event (`event_type: rebuild-site`).
+- `DISPATCH_PAT` — GitHub Personal Access Token with `repo` scope on `DISPATCH_REPO`, used to POST `/repos/{owner}/{repo}/dispatches`. Without both vars `dispatchRebuild()` logs and skips.
 - `LITESTREAM_BUCKET`, `LITESTREAM_PATH`, `LITESTREAM_REGION`, `LITESTREAM_ACCESS_KEY_ID`, `LITESTREAM_SECRET_ACCESS_KEY` — required in the production container.
 - `LITESTREAM_ENDPOINT` — optional S3-compatible endpoint.
 - `SUPERUSER_EMAIL` / `SUPERUSER_PASSWORD` — optional; when both are set, the container upserts the PocketBase superuser on start.

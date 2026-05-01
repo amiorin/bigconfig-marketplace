@@ -14,5 +14,19 @@ export GOOGLE_CLIENT_SECRET=
 # - Prod: the deployed origin (override the Dockerfile build arg).
 export PUBLIC_PB_URL=https://localhost
 
+# Optional: raise the GitHub API rate limit for hook-side enrichment.
+# Without this the unauthenticated limit (60 req/h) applies.
+export GITHUB_TOKEN=
+
+# Required for hooks to trigger a static-site rebuild after package
+# approvals, updates, and the nightly GitHub-stats refresh.
+# DISPATCH_REPO — target repository in "owner/repo" form that receives
+#   the `repository_dispatch` event (event_type: rebuild-site).
+# DISPATCH_PAT  — GitHub Personal Access Token with `repo` scope on that
+#   repository (needed to POST /repos/{owner}/{repo}/dispatches).
+# Without both vars the hooks log a warning and skip the dispatch.
+export DISPATCH_REPO=
+export DISPATCH_PAT=
+
 # Make Node (Astro dev SSG fetch) trust Caddy's local CA.
 export NODE_EXTRA_CA_CERTS="$HOME/Library/Application Support/Caddy/pki/authorities/local/root.crt"

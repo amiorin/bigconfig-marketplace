@@ -71,8 +71,12 @@ Edit `.envrc` for your environment. Required vars:
 Optional:
 
 - `GITHUB_TOKEN` — raises rate limit for hook-side GitHub enrichment.
-- `DISPATCH_REPO` (`owner/repo`) and `DISPATCH_PAT` — required for hooks to
-  trigger the rebuild workflow. Without them, hooks log and skip.
+- `DISPATCH_REPO` — target repository in `owner/repo` form that receives the
+  `repository_dispatch` event (`event_type: rebuild-site`) used to trigger a
+  static-site rebuild.
+- `DISPATCH_PAT` — GitHub Personal Access Token with `repo` scope on
+  `DISPATCH_REPO`, used to POST to `/repos/{owner}/{repo}/dispatches`. Without
+  both vars the hooks log a warning and skip the dispatch.
 
 ## Develop
 
