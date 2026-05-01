@@ -1,11 +1,30 @@
 ---
 import Layout from '~/layouts/Layout.astro';
 import PackageCard from '~/components/PackageCard.astro';
+import ApplicationCard from '~/components/ApplicationCard.astro';
 import { fetchApprovedPackages } from '~/lib/packages';
+import { fetchApprovedApplications } from '~/lib/applications';
 
-const all = await fetchApprovedPackages();
-const recent = all.slice(0, 6);
-const totalCount = all.length;
+const [packages, applications] = await Promise.all([
+  fetchApprovedPackages(),
+  fetchApprovedApplications(),
+]);
+
+type RecentItem =
+  | { kind: 'package'; record: (typeof packages)[number] }
+  | { kind: 'application'; record: (typeof applications)[number] };
+
+const items: RecentItem[] = [
+  ...packages.map((p) => ({ kind: 'package' as const, record: p })),
+  ...applications.map((a) => ({ kind: 'application' as const, record: a })),
+];
+items.sort((a, b) =>
+  String(b.record.pushed_at ?? '').localeCompare(String(a.record.pushed_at ?? ''))
+);
+const recent = items.slice(0, 6);
+const packageCount = packages.length;
+const applicationCount = applications.length;
+const totalCount = packageCount + applicationCount;
 ---
 
 <Layout title="Made with BigConfig — community marketplace">
@@ -14,7 +33,7 @@ const totalCount = all.length;
       class="mb-6 inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/60 px-4 py-1.5 text-xs font-medium text-neutral-300"
     >
       <span class="h-1.5 w-1.5 rounded-full bg-yellow-400"></span>
-      Community marketplace · BigConfig packages
+      Community marketplace · BigConfig packages & applications
     </div>
     <h1
       class="mx-auto max-w-4xl text-5xl font-semibold tracking-tight text-white md:text-7xl"
@@ -26,21 +45,32 @@ const totalCount = all.length;
       >
     </h1>
     <p class="mx-auto mt-6 max-w-2xl text-lg text-neutral-300 md:text-xl">
-      Browse community-built BigConfig packages. Or publish your own — turn the
-      runbook your agent generated into something the next operator can deploy.
+      Browse community-built BigConfig packages and applications. Or publish
+      your own — turn the runbook your agent generated into something the next
+      operator can deploy.
     </p>
     <div
-      class="mx-auto mt-10 flex max-w-md flex-col items-stretch justify-center gap-4 px-4 sm:max-w-none sm:flex-row sm:items-center sm:px-0"
+      class="mx-auto mt-10 grid max-w-md grid-cols-1 gap-3 sm:max-w-2xl sm:grid-cols-2"
     >
       <a
         href="/packages"
-        class="rounded-full bg-yellow-400 px-8 py-4 text-center text-base font-semibold text-neutral-950 transition hover:bg-yellow-300"
+        class="rounded-full bg-yellow-400 px-6 py-3.5 text-center text-base font-semibold text-neutral-950 transition hover:bg-yellow-300"
         >Browse packages</a
       >
       <a
+        href="/applications"
+        class="rounded-full bg-yellow-400 px-6 py-3.5 text-center text-base font-semibold text-neutral-950 transition hover:bg-yellow-300"
+        >Browse applications</a
+      >
+      <a
         href="/submit"
-        class="rounded-full border border-neutral-700 px-8 py-4 text-center text-base font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
+        class="rounded-full border border-neutral-700 px-6 py-3.5 text-center text-base font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
         >Submit a package</a
+      >
+      <a
+        href="/applications/submit"
+        class="rounded-full border border-neutral-700 px-6 py-3.5 text-center text-base font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
+        >Submit an application</a
       >
     </div>
     <p class="mt-6 text-sm text-neutral-500">
@@ -54,27 +84,29 @@ const totalCount = all.length;
     >
       <div class="bg-neutral-950 p-6 text-center">
         <div class="text-3xl font-semibold text-white md:text-4xl">
-          {totalCount}
+          {packageCount}
         </div>
-        <div class="mt-2 text-xs text-neutral-400 uppercase tracking-wider">
+        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">
           packages
         </div>
       </div>
       <div class="bg-neutral-950 p-6 text-center">
-        <div class="text-3xl font-semibold text-white md:text-4xl">Open</div>
-        <div class="mt-2 text-xs text-neutral-400 uppercase tracking-wider">
-          submissions
+        <div class="text-3xl font-semibold text-white md:text-4xl">
+          {applicationCount}
+        </div>
+        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">
+          applications
         </div>
       </div>
       <div class="bg-neutral-950 p-6 text-center">
         <div class="text-3xl font-semibold text-white md:text-4xl">Source</div>
-        <div class="mt-2 text-xs text-neutral-400 uppercase tracking-wider">
+        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">
           on github
         </div>
       </div>
       <div class="bg-neutral-950 p-6 text-center">
         <div class="text-3xl font-semibold text-white md:text-4xl">Agent</div>
-        <div class="mt-2 text-xs text-neutral-400 uppercase tracking-wider">
+        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">
           ready
         </div>
       </div>
@@ -84,7 +116,7 @@ const totalCount = all.length;
   <section id="recent" class="mx-auto max-w-6xl px-6 py-24">
     <div class="mb-16 text-center">
       <div
-        class="mb-4 inline-block text-xs font-semibold tracking-widest text-yellow-400 uppercase"
+        class="mb-4 inline-block text-xs font-semibold uppercase tracking-widest text-yellow-400"
       >
         Recent submissions
       </div>
@@ -92,36 +124,55 @@ const totalCount = all.length;
         Browse the shelf.
       </h2>
       <p class="mx-auto mt-4 max-w-2xl text-neutral-400">
-        Latest community-built BigConfig packages. New ones land every week.
+        Latest community-built BigConfig packages and applications. New ones
+        land every week.
       </p>
     </div>
     {
       recent.length === 0 ? (
         <div class="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-10 text-center text-neutral-400">
-          <p>No packages yet — be the first to submit one.</p>
-          <a
-            href="/submit"
-            class="mt-6 inline-block rounded-full bg-yellow-400 px-6 py-3 text-sm font-semibold text-neutral-950 hover:bg-yellow-300"
-          >
-            Submit a package
-          </a>
+          <p>No submissions yet — be the first.</p>
+          <div class="mt-6 flex flex-wrap justify-center gap-3">
+            <a
+              href="/submit"
+              class="inline-block rounded-full bg-yellow-400 px-6 py-3 text-sm font-semibold text-neutral-950 hover:bg-yellow-300"
+            >
+              Submit a package
+            </a>
+            <a
+              href="/applications/submit"
+              class="inline-block rounded-full border border-neutral-700 px-6 py-3 text-sm font-semibold text-neutral-200 hover:border-neutral-500 hover:text-white"
+            >
+              Submit an application
+            </a>
+          </div>
         </div>
       ) : (
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {recent.map((p) => (
-            <PackageCard pkg={p} />
-          ))}
+          {recent.map((item) =>
+            item.kind === 'package' ? (
+              <PackageCard pkg={item.record} />
+            ) : (
+              <ApplicationCard app={item.record} />
+            )
+          )}
         </div>
       )
     }
     {
       recent.length > 0 && (
-        <div class="mt-12 text-center">
+        <div class="mt-12 flex flex-wrap justify-center gap-3">
           <a
             href="/packages"
             class="rounded-full border border-neutral-700 px-6 py-3 text-sm font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
           >
-            See all {totalCount} packages
+            See all {packageCount} packages
+          </a>
+          <a
+            href="/applications"
+            class="rounded-full border border-neutral-700 px-6 py-3 text-sm font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
+          >
+            See all {applicationCount} applications
           </a>
         </div>
       )

@@ -64,9 +64,12 @@ import Layout from '~/layouts/Layout.astro';
     status.classList.remove('hidden');
     status.textContent = 'Opening Google…';
     try {
-      await pb
+      const result = await pb
         .collection('users')
         .authWithOAuth2({ provider: 'google' });
+      const meta = (result as any)?.meta || {};
+      const avatarUrl = meta.avatarURL || meta.avatarUrl || '';
+      if (avatarUrl) localStorage.setItem('user_avatar_url', avatarUrl);
       status.textContent = 'Signed in. Redirecting…';
       const next = new URLSearchParams(location.search).get('next') || '/me';
       location.href = next;
