@@ -87,7 +87,7 @@ const all = await fetchApprovedPackages();
         <div id="grid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {all.map((p) => (
             <div
-              class="package-card-wrapper"
+              class="package-card-wrapper contents"
               data-name={p.name.toLowerCase()}
               data-description={(p.description || '').toLowerCase()}
               data-tags={(p.tags || []).join(',')}

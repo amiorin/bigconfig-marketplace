@@ -87,7 +87,7 @@ const all = await fetchApprovedApplications();
         <div id="grid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {all.map((a) => (
             <div
-              class="application-card-wrapper"
+              class="application-card-wrapper contents"
               data-name={a.name.toLowerCase()}
               data-description={(a.description || '').toLowerCase()}
               data-tags={(a.tags || []).join(',')}
