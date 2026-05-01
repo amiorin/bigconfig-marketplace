@@ -3,20 +3,20 @@ import Layout from '~/layouts/Layout.astro';
 import { TAG_GROUPS } from '~/lib/tags';
 ---
 
-<Layout title="Submit a package — BigConfig Marketplace">
+<Layout title="Add a package — BigConfig Marketplace">
   <section class="mx-auto max-w-3xl px-6 pt-20 pb-24">
     <div class="text-center">
       <div
         class="mb-4 inline-block text-xs font-semibold tracking-widest text-yellow-400 uppercase"
       >
-        Submit
+        Add
       </div>
       <h1 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
-        Add your package.
+        Add a package.
       </h1>
       <p class="mx-auto mt-4 max-w-xl text-neutral-400">
         Paste a public GitHub URL. We'll fetch the metadata and queue your
-        submission for review.
+        entry for review.
       </p>
     </div>
 
@@ -24,7 +24,7 @@ import { TAG_GROUPS } from '~/lib/tags';
       id="auth-gate"
       class="mt-12 hidden rounded-2xl border border-neutral-800 bg-neutral-900/40 p-10 text-center"
     >
-      <p class="text-neutral-300">You need to sign in to submit a package.</p>
+      <p class="text-neutral-300">You need to sign in to add a package.</p>
       <a
         href="/login?next=/submit"
         class="mt-6 inline-block rounded-full bg-yellow-400 px-6 py-3 text-sm font-semibold text-neutral-950 hover:bg-yellow-300"
@@ -90,7 +90,7 @@ import { TAG_GROUPS } from '~/lib/tags';
         type="submit"
         class="mt-2 rounded-full bg-yellow-400 px-6 py-4 text-base font-semibold text-neutral-950 transition hover:bg-yellow-300 disabled:opacity-60"
       >
-        Submit for review
+        Add for review
       </button>
       <p
         id="form-status"
@@ -130,11 +130,11 @@ import { TAG_GROUPS } from '~/lib/tags';
     };
     button.disabled = true;
     status.classList.remove('hidden');
-    status.textContent = 'Submitting…';
+    status.textContent = 'Adding…';
     try {
       await pb.collection('packages').create(payload);
       status.textContent =
-        "Submitted. We'll review it shortly — you can track it on /me/packages.";
+        "Added for review. You can track it on /me/packages.";
       form.reset();
       setTimeout(() => (location.href = '/me/packages'), 1500);
     } catch (err: any) {

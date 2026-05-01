@@ -45,9 +45,9 @@ const totalCount = packageCount + applicationCount;
       >
     </h1>
     <p class="mx-auto mt-6 max-w-2xl text-lg text-neutral-300 md:text-xl">
-      Browse community-built BigConfig packages and ONCE applications. Or
-      publish your own — turn the software your agent generated into something
-      the next creator can deploy.
+      Browse a directory of community-built BigConfig packages and ONCE
+      applications. Add any public package or compatible application you find
+      so others can discover and deploy it.
     </p>
     <div
       class="mx-auto mt-10 grid max-w-md grid-cols-1 gap-3 sm:max-w-2xl sm:grid-cols-2"
@@ -65,16 +65,16 @@ const totalCount = packageCount + applicationCount;
       <a
         href="/submit"
         class="rounded-full border border-neutral-700 px-6 py-3.5 text-center text-base font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
-        >Submit a package</a
+        >Add a package</a
       >
       <a
         href="/applications/submit"
         class="rounded-full border border-neutral-700 px-6 py-3.5 text-center text-base font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
-        >Submit an application</a
+        >Add an application</a
       >
     </div>
     <p class="mt-6 text-sm text-neutral-500">
-      For creators publishing packages and applications they already run.
+      A public index for useful packages and deployable applications.
     </p>
   </section>
 
@@ -118,32 +118,32 @@ const totalCount = packageCount + applicationCount;
       <div
         class="mb-4 inline-block text-xs font-semibold uppercase tracking-widest text-yellow-400"
       >
-        Recent submissions
+        Recent entries
       </div>
       <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
         Browse the shelf.
       </h2>
       <p class="mx-auto mt-4 max-w-2xl text-neutral-400">
         Latest community-built BigConfig packages and ONCE applications. New
-        ones land every week.
+        entries land every week.
       </p>
     </div>
     {
       recent.length === 0 ? (
         <div class="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-10 text-center text-neutral-400">
-          <p>No submissions yet — be the first.</p>
+          <p>No entries yet — add the first package or application.</p>
           <div class="mt-6 flex flex-wrap justify-center gap-3">
             <a
               href="/submit"
               class="inline-block rounded-full bg-yellow-400 px-6 py-3 text-sm font-semibold text-neutral-950 hover:bg-yellow-300"
             >
-              Submit a package
+              Add a package
             </a>
             <a
               href="/applications/submit"
               class="inline-block rounded-full border border-neutral-700 px-6 py-3 text-sm font-semibold text-neutral-200 hover:border-neutral-500 hover:text-white"
             >
-              Submit an application
+              Add an application
             </a>
           </div>
         </div>
