@@ -4,7 +4,7 @@ WORKDIR /web
 COPY web/package.json web/package-lock.json* ./
 RUN npm ci
 COPY web/ ./
-ARG PUBLIC_PB_URL=
+ARG PUBLIC_PB_URL=https://localhost
 ENV PUBLIC_PB_URL=${PUBLIC_PB_URL}
 # Astro outputs to ../pocketbase/pb_public by default; override here for the
 # isolated build stage.

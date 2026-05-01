@@ -59,10 +59,14 @@ cd web && npm install && cd ..
 
 Edit `.envrc` for your environment. Required vars:
 
-- `PUBLIC_PB_URL` — where the browser/SDK reaches PocketBase. In dev,
-  `https://localhost` (via Caddy). In the deployed image, the Dockerfile
-  defaults it to `''` for same-origin requests.
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — OAuth, configured in PB admin.
+- `PUBLIC_PB_URL` — absolute origin (scheme + host) where the browser/SDK
+  reaches PocketBase. `https://localhost` in dev (via Caddy); the deployed
+  origin in prod. Must not be `''` or relative — see the **Build** section
+  for why.
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth credentials.
+  Not consumed as env vars; paste them into PB admin → Settings → Auth
+  providers → Google. The `.envrc.example` entries exist as a reference
+  holder.
 
 Optional:
 
@@ -104,10 +108,14 @@ cd pocketbase && ./pocketbase migrate create <name>
 cd web && npm run build                   # writes to ../pocketbase/pb_public
 ```
 
-`PUBLIC_PB_URL` is **inlined into the static bundle at build time**. The
-Dockerfile defaults it to an empty string for same-origin production requests.
-Pass a public PocketBase URL as a build arg only if the static build should
-fetch live approved records.
+`PUBLIC_PB_URL` is **inlined into the static bundle at build time** and must
+be the absolute origin (scheme + host) where the browser will reach
+PocketBase. The Dockerfile defaults it to `https://localhost` (suitable for
+SSH-tunnel + local Caddy testing); for prod, override with
+`--build-arg PUBLIC_PB_URL=<your-origin>`. An empty or relative value makes
+the PocketBase SDK emit page-path-relative URLs at runtime — e.g. on
+`/login` it calls `/login/api/...` instead of `/api/...` — which breaks
+Google SSO.
 
 ## Docker
 

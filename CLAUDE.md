@@ -14,7 +14,7 @@ A marketplace for "bigconfig" packages and ONCE-compatible applications, built a
 - **`Procfile.prod`** — Production process list copied into the image as `/app/Procfile`: Caddy plus `entrypoint.sh`.
 - **`entrypoint.sh`** — Creates `/storage/pb_data`, restores SQLite from Litestream if needed, optionally upserts a PocketBase superuser with explicit production directories, then runs PocketBase under `litestream replicate -exec`.
 - **`litestream.yml`** — S3 replica config for `/storage/pb_data/data.db`.
-- **`Dockerfile`** — Two stages: build the Astro site with `PUBLIC_PB_URL` baked in (default `''`), then assemble an ONCE-compatible Alpine image with latest Caddy, PocketBase, Litestream, Hivemind, migrations, hooks, and the built static site.
+- **`Dockerfile`** — Two stages: build the Astro site with `PUBLIC_PB_URL` baked in (default `https://localhost`), then assemble an ONCE-compatible Alpine image with latest Caddy, PocketBase, Litestream, Hivemind, migrations, hooks, and the built static site.
 - **`plans/`** — Numbered markdown planning documents capturing design decisions.
 
 ## Data Collections
@@ -140,7 +140,7 @@ cd pocketbase && pocketbase migrate create <name>
 
 The `pocketbase` binary is gitignored — download from https://github.com/pocketbase/pocketbase/releases and place at `pocketbase/pocketbase`.
 
-`PUBLIC_PB_URL` is inlined into the static bundle. The Dockerfile defaults it to `''` for same-origin production requests. Pass a public PB URL only when the static build should fetch live approved records.
+`PUBLIC_PB_URL` is inlined into the static bundle at build time and must be the absolute origin (scheme + host) where the browser will reach PocketBase. The Dockerfile defaults it to `https://localhost`; override with `--build-arg PUBLIC_PB_URL=<your-origin>` for prod. Empty or relative values make the PocketBase SDK emit page-path-relative URLs at runtime — e.g. on `/login` it calls `/login/api/...` instead of `/api/...` — which breaks Google SSO.
 
 The runtime image is ONCE-compatible: Caddy listens on `:80`, `/up` returns `OK`, and only PocketBase data is persistent at `/storage/pb_data`. `pb_public` remains baked into `/pb/pb_public`.
 
@@ -159,8 +159,8 @@ Use the same explicit directory flags for `pocketbase superuser upsert`.
 
 ## Environment variables
 
-- `PUBLIC_PB_URL` — frontend → PocketBase URL (build-time, baked into static bundle).
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — OAuth for PocketBase (configured in admin UI, sourced from env).
+- `PUBLIC_PB_URL` — absolute origin where the browser/SDK reaches PocketBase. Build-time, baked into the static bundle. Must not be `''` or relative (breaks Google SSO via page-path-relative URLs). Dockerfile default is `https://localhost`.
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth credentials. Not consumed as env vars; configured manually in PB admin → Settings → Auth providers → Google. The `.envrc.example` entries are reference holders only.
 - `GITHUB_TOKEN` — optional, raises rate limit for the GitHub API enrichment in `utils.js`.
 - `DISPATCH_REPO` (e.g. `owner/repo`) and `DISPATCH_PAT` — required for `dispatchRebuild` to trigger the rebuild workflow. Without them, hooks log and skip.
 - `LITESTREAM_BUCKET`, `LITESTREAM_PATH`, `LITESTREAM_REGION`, `LITESTREAM_ACCESS_KEY_ID`, `LITESTREAM_SECRET_ACCESS_KEY` — required in the production container.
