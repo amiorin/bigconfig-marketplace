@@ -28,6 +28,13 @@ const isActive = (href: string) =>
           isActive('/applications') ? 'text-yellow-400' : 'text-white',
         ]}>Applications</a
       >
+      <a
+        href="/documentation"
+        class:list={[
+          'transition hover:text-yellow-400',
+          isActive('/documentation') ? 'text-yellow-400' : 'text-white',
+        ]}>Documentation</a
+      >
     </nav>
     <div class="flex items-center gap-3">
       <div class="relative">

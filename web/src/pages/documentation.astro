@@ -1,0 +1,356 @@
+---
+import Layout from '~/layouts/Layout.astro';
+
+const packageBbEdn = `;; bb.edn
+{:deps {io.github.amiorin/alice {:git/sha "9c214edce47419297e6bd8212a63bb0ab93bcf86"}}
+ :tasks
+ {:requires ([io.github.amiorin.alice.package :as package])
+  alice {:doc  "Manage the Alice package"
+         :task (package/alice* *command-line-args*)}}}`;
+
+const packageRun = `# Provision infrastructure and software
+bb alice create
+
+# Tear it down
+bb alice delete`;
+
+const onceBbEdn = `;; bb.edn
+{:deps  {io.github.amiorin/once {:git/url "https://github.com/amiorin/once"
+                                 :git/sha "8ffbbc2ea0974365575c7ee44b7d890e69447144"}}
+ :tasks {:requires ([io.github.amiorin.once.package :as pkg])
+         once {:doc  "bb once create | bb once delete"
+               :task (pkg/once*
+                      *command-line-args*
+                      {:big-config.workflow/params
+                       {:once {:applications [{:host  "www.example.com"
+                                               :image "ghcr.io/me/my-app:latest"}]}
+                        :provider-compute "hcloud"
+                        :provider-dns     "cloudflare"
+                        :provider-smtp    "resend"}})}}}`;
+
+const onceRun = `bb once create
+bb once delete`;
+
+const sections = [
+  { id: 'use-marketplace', label: 'How to use the Marketplace' },
+  { id: 'bigconfig', label: 'What is BigConfig' },
+  { id: 'bigconfig-package', label: 'What is a BigConfig Package' },
+  { id: 'once-package', label: 'What is the BigConfig package once' },
+  { id: 'once', label: 'What is ONCE' },
+  { id: 'once-application', label: 'What is a ONCE application' },
+];
+---
+
+<Layout title="Documentation — BigConfig Marketplace">
+  <section class="mx-auto max-w-3xl px-6 pt-20 pb-12 text-center">
+    <div
+      class="mb-4 inline-block text-xs font-semibold tracking-widest text-yellow-400 uppercase"
+    >
+      Documentation
+    </div>
+    <h1 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+      How the Marketplace fits together.
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-neutral-400">
+      A short tour of BigConfig, BigConfig Packages, the <code
+        class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+        >once</code
+      > package, ONCE, and ONCE applications — and how they combine to make
+      this site work.
+    </p>
+  </section>
+
+  <nav class="mx-auto max-w-3xl px-6 pb-16">
+    <div class="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6">
+      <div
+        class="mb-3 text-xs font-semibold tracking-wider text-neutral-500 uppercase"
+      >
+        On this page
+      </div>
+      <ul class="grid gap-2 text-sm md:grid-cols-2">
+        {
+          sections.map((s) => (
+            <li>
+              <a
+                href={`#${s.id}`}
+                class="text-neutral-200 transition hover:text-yellow-400"
+              >
+                {s.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </nav>
+
+  <section id="use-marketplace" class="mx-auto max-w-3xl px-6 pb-20">
+    <h2 class="text-3xl font-semibold tracking-tight text-white">
+      How to use the Marketplace
+    </h2>
+    <p class="mt-6 leading-relaxed text-neutral-300">
+      BigConfig Marketplace is a community catalog of two kinds of
+      submissions — <a
+        href="/packages"
+        class="text-yellow-400 hover:underline">BigConfig Packages</a
+      >
+      and
+      <a href="/applications" class="text-yellow-400 hover:underline"
+        >ONCE applications</a
+      >. You can browse anonymously; signing in with Google is only required
+      to submit your own.
+    </p>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      Every new entry starts in a <em>pending</em> state, visible only to
+      its submitter on the <a
+        href="/me/packages"
+        class="text-yellow-400 hover:underline">My packages</a
+      >
+      and <a
+        href="/me/applications"
+        class="text-yellow-400 hover:underline">My applications</a
+      > pages. Once an admin approves it, it lands in the public catalog and
+      its GitHub metadata (description, stars, last push, OG image) is
+      refreshed automatically — including a nightly job that keeps the
+      counts current.
+    </p>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      To submit a package, point the form at any public GitHub repository
+      that contains a BigConfig package. To submit a ONCE application,
+      provide a publicly pullable Docker image reference. The shape of each
+      submission is described in the dedicated sections below.
+    </p>
+  </section>
+
+  <section id="bigconfig" class="mx-auto max-w-3xl px-6 pb-20">
+    <h2 class="text-3xl font-semibold tracking-tight text-white">
+      What is BigConfig
+    </h2>
+    <p class="mt-6 leading-relaxed text-neutral-300">
+      <a
+        href="https://bigconfig.it"
+        class="text-yellow-400 hover:underline"
+        target="_blank"
+        rel="noopener">BigConfig</a
+      > is the first <em>agentic</em> package manager — a Clojure/Babashka
+      framework for delivering infrastructure and software as a single,
+      cohesive unit. It is designed so that you don't need to learn it
+      yourself: an LLM agent can operate it on your behalf from a plain
+      English description.
+    </p>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      The most radical design choice in BigConfig is what it lacks:
+      <strong class="text-white">a dedicated CLI</strong>. Instead of
+      shipping yet another binary, BigConfig is consumed as a library
+      through Babashka tasks. Each package author defines their own CLI
+      surface in <code
+        class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+        >bb.edn</code
+      >, which means end-users can compose, customize, and embed packages
+      without fighting binary boundaries.
+    </p>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      Practically, BigConfig spans three environments — the shell (for
+      ad-hoc commands), the REPL (for live debugging without
+      edit-compile-fail loops), and the library (for deep automation
+      embedded in your own code). The same package works in all three.
+    </p>
+  </section>
+
+  <section id="bigconfig-package" class="mx-auto max-w-3xl px-6 pb-20">
+    <h2 class="text-3xl font-semibold tracking-tight text-white">
+      What is a BigConfig Package
+    </h2>
+    <p class="mt-6 leading-relaxed text-neutral-300">
+      A <strong class="text-white">BigConfig Package</strong> is a standard
+      Clojure repository whose entry point is a <em>workflow function</em>
+      authored with the BigConfig Workflow library. The package author
+      defines the lifecycle (<code
+        class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+        >create</code
+      >, <code
+        class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+        >delete</code
+      >, and any custom steps), the providers it can target, and the
+      parameters it exposes.
+    </p>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      To use a package, you add it as a dependency in your <code
+        class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+        >bb.edn</code
+      > and bind it to a Babashka task:
+    </p>
+    <pre
+      class="mt-4 overflow-x-auto rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6 text-sm leading-relaxed"><code class="font-mono text-neutral-300">{packageBbEdn}</code></pre>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      Then run the standardized lifecycle commands. We use <code
+        class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+        >create</code
+      >
+      rather than <code
+        class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+        >install</code
+      > to reflect that infrastructure is actively provisioned during delivery,
+      not just unpacked locally.
+    </p>
+    <pre
+      class="mt-4 overflow-x-auto rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6 text-sm leading-relaxed"><code class="font-mono text-neutral-300">{packageRun}</code></pre>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      Because everything goes through Babashka, startup is near-instant —
+      ideal for both CI/CD and the inner-loop iterations of an agent
+      reading and writing config.
+    </p>
+  </section>
+
+  <section id="once-package" class="mx-auto max-w-3xl px-6 pb-20">
+    <h2 class="text-3xl font-semibold tracking-tight text-white">
+      What is the BigConfig package <code
+        class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-yellow-400"
+        >once</code
+      >
+    </h2>
+    <p class="mt-6 leading-relaxed text-neutral-300">
+      <a
+        href="/packages/amiorin/once"
+        class="text-yellow-400 hover:underline"><code
+          class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+          >once</code
+        ></a
+      > is the BigConfig package that turns any ONCE application into a
+      single-command deployment. It provisions a server (Hetzner Cloud,
+      Oracle Cloud, or a host you bring yourself), wires up Cloudflare DNS,
+      configures Resend SMTP end-to-end (DKIM and SPF included), and runs
+      Ansible playbooks to install Docker, the firewall, and TLS.
+    </p>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      The complete bb.edn for a deployment looks like this — note how a
+      single ONCE application is described by a host plus a public Docker
+      image:
+    </p>
+    <pre
+      class="mt-4 overflow-x-auto rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6 text-sm leading-relaxed"><code class="font-mono text-neutral-300">{onceBbEdn}</code></pre>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      With that file in place, the lifecycle is two commands:
+    </p>
+    <pre
+      class="mt-4 overflow-x-auto rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6 text-sm leading-relaxed"><code class="font-mono text-neutral-300">{onceRun}</code></pre>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      Both commands are agent-operable and reversible: there is no
+      "configure manually after first boot" step, and tearing the
+      deployment down leaves no orphaned resources behind.
+    </p>
+  </section>
+
+  <section id="once" class="mx-auto max-w-3xl px-6 pb-20">
+    <h2 class="text-3xl font-semibold tracking-tight text-white">
+      What is ONCE
+    </h2>
+    <p class="mt-6 leading-relaxed text-neutral-300">
+      <strong class="text-white">ONCE</strong> is the simple, self-hostable
+      app-distribution model popularized by Basecamp: you pay once, you
+      download a Docker image, and you run it on infrastructure you own —
+      no SaaS subscription, no multi-tenant cloud, no surprise bill.
+    </p>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      The philosophy is the inverse of SaaS: instead of renting a slice of
+      somebody else's deployment, you take full ownership of yours. The
+      software, the data, and the server are all under your control.
+    </p>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      What ONCE deliberately leaves <em>open</em> is "and how do I host
+      this thing?". The image is yours to deploy, but standing up the
+      server, the DNS, and the SMTP plumbing has historically been a
+      multi-day exercise. That gap is exactly where the BigConfig <code
+        class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+        >once</code
+      > package fits.
+    </p>
+  </section>
+
+  <section id="once-application" class="mx-auto max-w-3xl px-6 pb-20">
+    <h2 class="text-3xl font-semibold tracking-tight text-white">
+      What is a ONCE application
+    </h2>
+    <p class="mt-6 leading-relaxed text-neutral-300">
+      A <strong class="text-white">ONCE application</strong> is a Docker
+      container that follows a small contract:
+    </p>
+    <ul
+      class="mt-4 list-disc space-y-2 pl-6 leading-relaxed text-neutral-300"
+    >
+      <li>
+        It serves HTTP on port <code
+          class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+          >80</code
+        >.
+      </li>
+      <li>
+        It exposes a <code
+          class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+          >/up</code
+        > healthcheck endpoint (returning <code
+          class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+          >200 OK</code
+        > when the app is ready).
+      </li>
+      <li>
+        It persists all state under <code
+          class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+          >/storage</code
+        >, which the host mounts as a durable volume.
+      </li>
+      <li>
+        Its image is publicly pullable (Docker Hub, GHCR, or any other
+        public registry).
+      </li>
+    </ul>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      That's the whole shape. Any image that conforms can be deployed by
+      the <code
+        class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+        >once</code
+      > package, listed in this marketplace as a ONCE application, and
+      operated by an agent.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 pb-24">
+    <div
+      class="rounded-3xl border border-yellow-400/30 bg-yellow-400/5 p-10 md:p-12"
+    >
+      <div
+        class="mb-3 text-xs font-semibold tracking-widest text-yellow-400 uppercase"
+      >
+        It's turtles all the way down
+      </div>
+      <h2 class="text-2xl font-semibold tracking-tight text-white md:text-3xl">
+        BigConfig Marketplace is itself a ONCE application.
+      </h2>
+      <p class="mt-4 leading-relaxed text-neutral-300">
+        This site is a single Docker image bundling a PocketBase backend
+        with a static Astro frontend served from <code
+          class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+          >pb_public</code
+        >. It serves HTTP on <code
+          class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+          >:80</code
+        >, exposes <code
+          class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+          >/up</code
+        >, and stores its database under <code
+          class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+          >/storage</code
+        > — exactly the contract above.
+      </p>
+      <p class="mt-4 leading-relaxed text-neutral-300">
+        It's deployed using the BigConfig <a
+          href="/packages/amiorin/once"
+          class="text-yellow-400 hover:underline"><code
+            class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
+            >once</code
+          ></a
+        > package — the same package this Marketplace catalogs.
+      </p>
+    </div>
+  </section>
+</Layout>
