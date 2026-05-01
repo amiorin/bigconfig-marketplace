@@ -11,6 +11,12 @@ const FIELD_LABELS: Record<string, string> = {
   docker_image: 'Docker image',
 };
 
+export function escapeHtml(s: unknown): string {
+  return String(s ?? '').replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!
+  );
+}
+
 export function formatPbError(err: any, fallback = 'Request failed.'): string {
   const fields = err?.data?.data;
   if (fields && typeof fields === 'object') {

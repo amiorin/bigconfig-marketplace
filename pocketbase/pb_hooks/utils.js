@@ -13,6 +13,51 @@ const PROTECTED_FIELDS = [
   "docker_image",
 ];
 
+// Registries whose images are accepted for submission. Anything else is rejected
+// to prevent SSRF via arbitrary registry hostnames.
+const ALLOWED_REGISTRIES = new Set([
+  "registry-1.docker.io",
+  "index.docker.io",
+  "docker.io",
+  "ghcr.io",
+  "quay.io",
+  "registry.gitlab.com",
+  "gcr.io",
+  "public.ecr.aws",
+  "mcr.microsoft.com",
+]);
+
+function isAllowedRegistry(registry) {
+  if (ALLOWED_REGISTRIES.has(registry)) return true;
+  if (registry.endsWith(".pkg.dev")) return true; // Google Artifact Registry
+  if (registry.endsWith(".ecr.aws")) return true; // AWS ECR regional
+  return false;
+}
+
+// Extract hostname from a URL string without relying on the URL constructor.
+function getUrlHost(url) {
+  const m = String(url).match(/^https?:\/\/([^/?#]+)/i);
+  return m ? m[1].toLowerCase() : null;
+}
+
+// Validate that a token realm URL is from a trusted host.
+// Prevents SSRF via attacker-controlled WWW-Authenticate: Bearer realm= headers.
+function isAllowedRealmUrl(realmUrl, registry) {
+  if (!String(realmUrl).startsWith("https://")) return false;
+  const host = getUrlHost(realmUrl);
+  if (!host) return false;
+  if (host === registry) return true;
+  for (const allowed of ALLOWED_REGISTRIES) {
+    if (host === allowed) return true;
+    // e.g. auth.docker.io is trusted for registry-1.docker.io
+    const dot = allowed.indexOf(".");
+    if (dot !== -1 && host.endsWith(allowed.slice(dot))) return true;
+  }
+  if (host.endsWith(".pkg.dev")) return true;
+  if (host.endsWith(".ecr.aws")) return true;
+  return false;
+}
+
 function parseGithubName(url) {
   if (!url) return null;
   const m = String(url).match(
@@ -38,14 +83,14 @@ function fetchGithubMeta(name) {
     if (res.statusCode !== 200) return null;
     const j = res.json;
     return {
-      description: j.description || "",
+      description: (j.description || "").slice(0, 500),
       stars: j.stargazers_count || 0,
       default_branch: j.default_branch || "",
       pushed_at: j.pushed_at || "",
       og_image: "https://opengraph.githubassets.com/1/" + name,
     };
   } catch (err) {
-    console.log("[packages] github fetch failed for " + name + ": " + err);
+    console.log("[github] fetch failed for " + name + ": " + err);
     return null;
   }
 }
@@ -55,8 +100,7 @@ function dispatchRebuild(reason) {
   const pat = $os.getenv("DISPATCH_PAT");
   if (!repo || !pat) {
     console.log(
-      "[packages] dispatch skipped (DISPATCH_REPO/DISPATCH_PAT unset): " +
-        reason
+      "[dispatch] skipped (DISPATCH_REPO/DISPATCH_PAT unset): " + reason
     );
     return;
   }
@@ -76,9 +120,9 @@ function dispatchRebuild(reason) {
       }),
       timeout: 10,
     });
-    console.log("[packages] dispatch sent: " + reason);
+    console.log("[dispatch] sent: " + reason);
   } catch (err) {
-    console.log("[packages] dispatch failed: " + err);
+    console.log("[dispatch] failed: " + err);
   }
 }
 
@@ -153,7 +197,11 @@ function getHeader(res, name) {
   return "";
 }
 
-function fetchAnonymousToken(challenge) {
+function fetchAnonymousToken(challenge, registry) {
+  if (!isAllowedRealmUrl(challenge.realm, registry)) {
+    console.log("[docker] rejected token realm not in allowlist: " + challenge.realm);
+    return "";
+  }
   let url = challenge.realm;
   const qs = [];
   if (challenge.service) qs.push("service=" + encodeURIComponent(challenge.service));
@@ -174,14 +222,22 @@ function fetchAnonymousToken(challenge) {
 }
 
 // Validate that a public Docker image is reachable (manifest exists).
-// Handles the OCI Distribution token-auth challenge: on 401, parses the
-// WWW-Authenticate header, fetches an anonymous token, and retries.
+// Only images from known public registries are accepted; rejects private/unknown
+// registries to prevent SSRF. Handles OCI Distribution token-auth challenge.
 // Throws BadRequestError if the image is unreachable or genuinely private.
 function validateDockerImage(image) {
   const parsed = parseDockerImage(image);
   if (!parsed) {
     throw new BadRequestError(
       "docker_image must look like [registry/]repo[:tag], e.g. ghcr.io/owner/app:v1"
+    );
+  }
+
+  if (!isAllowedRegistry(parsed.registry)) {
+    throw new BadRequestError(
+      "docker_image uses an unsupported registry (" + parsed.registry + "). " +
+      "Supported: Docker Hub, ghcr.io, quay.io, gcr.io, registry.gitlab.com, " +
+      "public.ecr.aws, mcr.microsoft.com, *.pkg.dev, *.ecr.aws."
     );
   }
 
@@ -214,7 +270,7 @@ function validateDockerImage(image) {
   if (res.statusCode === 401) {
     const challenge = parseBearerChallenge(getHeader(res, "Www-Authenticate"));
     if (challenge) {
-      const token = fetchAnonymousToken(challenge);
+      const token = fetchAnonymousToken(challenge, parsed.registry);
       if (token) {
         try {
           res = callManifest(token);

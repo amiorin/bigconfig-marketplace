@@ -12,7 +12,7 @@ RUN npm run build -- --outDir /out
 
 # Runtime stage: Caddy + Litestream-supervised PocketBase + built static site.
 FROM alpine:3.20
-ARG TARGETARCH=arm64
+ARG TARGETARCH
 
 RUN apk add --no-cache ca-certificates tini
 
