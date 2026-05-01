@@ -291,15 +291,29 @@ const agenticPoints = [
     </h2>
     <p class="mt-6 leading-relaxed text-neutral-300">
       <strong class="text-white">ONCE</strong> is Basecamp's open-source
-      framework for shipping a web application as a single,
-      self-hostable Docker image. The reference implementation and the
-      contract live at <a
+      platform for installing and managing Docker-based web applications,
+      with the explicit goal of making self-hosting as simple as possible.
+      The codebase lives at <a
         href="https://github.com/basecamp/once"
         target="_blank"
         rel="noopener"
         class="text-yellow-400 hover:underline">github.com/basecamp/once</a
-      > — and despite its earlier life as a paid product, ONCE is now
-      open-source and free to use.
+      >.
+    </p>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      The tool bundles three things you would otherwise wire up yourself: a
+      one-line installer that drops the binary onto the host (and Docker,
+      if needed), a TUI dashboard for monitoring and operating each
+      application, and a CLI suite that is convenient for humans and
+      especially well-suited for AI agents. On top of that it provides
+      automatic updates, backups, and system information.
+    </p>
+    <p class="mt-4 leading-relaxed text-neutral-300">
+      ONCE runs on Linux and macOS, and is designed to work on whatever
+      hardware fits the deployment — a physical server, a cloud VPS, a
+      Raspberry Pi, or a laptop. Out of the box it ships with the
+      37signals applications, and it can install any compatible Docker
+      image as well, including third-party apps and custom forks.
     </p>
     <div
       class="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-6 text-sm leading-relaxed text-neutral-300"
@@ -310,23 +324,23 @@ const agenticPoints = [
         At a glance
       </div>
       <ul class="list-disc space-y-1 pl-5">
-        <li>Open-source, MIT-style license — no per-seat fee, no SaaS gate.</li>
-        <li>Single Docker image per app — no orchestration framework required.</li>
-        <li>Runs on your infrastructure — your software, your data, your server.</li>
+        <li>One-line installer: <code
+            class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-xs text-yellow-400"
+            >curl https://get.once.com | sh</code
+          >.</li>
+        <li>TUI dashboard plus an agent-friendly CLI for day-2 operations.</li>
+        <li>Automatic updates, backups, and system information built in.</li>
+        <li>Runs on Linux and macOS — anything from a Raspberry Pi to a cloud VPS.</li>
+        <li>37signals apps included; any compatible Docker image works.</li>
       </ul>
     </div>
     <p class="mt-6 leading-relaxed text-neutral-300">
-      The philosophy is the inverse of SaaS: instead of renting a slice of
-      somebody else's deployment, you take full ownership of yours.
-    </p>
-    <p class="mt-4 leading-relaxed text-neutral-300">
-      What ONCE deliberately leaves <em>open</em> is "and how do I host
-      this thing?". The image is yours to deploy, but standing up the
-      server, the DNS, and the SMTP plumbing has historically been a
-      multi-day exercise. That gap is exactly where the BigConfig <code
+      What ONCE deliberately leaves outside its scope is the host itself —
+      the cloud account, the server, the DNS records, the SMTP credentials,
+      the firewall. That is exactly the gap the BigConfig <code
         class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
         >once</code
-      > package fits — and where your agent does the work for you.
+      > package fills, and where your agent does the work for you.
     </p>
   </section>
 
