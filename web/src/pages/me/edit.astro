@@ -51,7 +51,7 @@ import { TAG_GROUPS } from '~/lib/tags';
           class="w-full rounded-lg border border-neutral-800 bg-neutral-950/50 px-4 py-3 text-neutral-400 outline-none"
         />
         <span class="mt-1 block text-xs text-neutral-500"
-          >URL is locked once submitted. Delete and re-submit if you need a
+          >URL is locked once added. Delete and add it again if you need a
           different repo.</span
         >
       </label>
@@ -148,7 +148,7 @@ import { TAG_GROUPS } from '~/lib/tags';
       if (pkg.submitter !== me?.id) {
         loading.classList.add('hidden');
         errorBox.classList.remove('hidden');
-        errorBox.textContent = 'You can only edit packages you submitted.';
+        errorBox.textContent = 'You can only edit packages you added.';
         return;
       }
       nameEl.textContent = pkg.name;

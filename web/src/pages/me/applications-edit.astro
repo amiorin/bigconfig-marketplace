@@ -51,7 +51,7 @@ import { APPLICATION_TAG_GROUPS as TAG_GROUPS } from '~/lib/tags';
           class="w-full rounded-lg border border-neutral-800 bg-neutral-950/50 px-4 py-3 text-neutral-400 outline-none"
         />
         <span class="mt-1 block text-xs text-neutral-500"
-          >URL is locked once submitted. Delete and re-submit if you need a
+          >URL is locked once added. Delete and add it again if you need a
           different repo.</span
         >
       </label>
@@ -64,7 +64,7 @@ import { APPLICATION_TAG_GROUPS as TAG_GROUPS } from '~/lib/tags';
           class="w-full rounded-lg border border-neutral-800 bg-neutral-950/50 px-4 py-3 font-mono text-neutral-400 outline-none"
         />
         <span class="mt-1 block text-xs text-neutral-500"
-          >Image is locked once submitted. Delete and re-submit to change it.</span
+          >Image is locked once added. Delete and add it again to change it.</span
         >
       </label>
       <label class="block text-sm">
@@ -160,7 +160,7 @@ import { APPLICATION_TAG_GROUPS as TAG_GROUPS } from '~/lib/tags';
       if (app.submitter !== me?.id) {
         loading.classList.add('hidden');
         errorBox.classList.remove('hidden');
-        errorBox.textContent = 'You can only edit applications you submitted.';
+        errorBox.textContent = 'You can only edit applications you added.';
         return;
       }
       nameEl.textContent = app.name;
