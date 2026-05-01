@@ -37,7 +37,7 @@ const sections = [
   { id: 'bigconfig', label: 'What is BigConfig' },
   { id: 'bb-edn', label: 'What is bb.edn' },
   { id: 'bigconfig-package', label: 'What is a BigConfig Package' },
-  { id: 'once-package', label: 'What is the BigConfig package once' },
+  { id: 'once-package', label: 'What is the Once BigConfig Package' },
   { id: 'once', label: 'What is ONCE' },
   { id: 'once-application', label: 'What is a ONCE application' },
 ];
@@ -53,7 +53,7 @@ const agenticPoints = [
   },
   {
     title: 'Deploy ONCE apps for you',
-    body: 'Hand the agent a Docker image and a domain. It drives the BigConfig once package to provision the server, wire DNS and SMTP, and ship the container.',
+    body: 'Hand the agent a Docker image and a domain. It drives the Once BigConfig Package to provision the server, wire DNS and SMTP, and ship the container.',
   },
   {
     title: 'No coding required',
@@ -314,10 +314,10 @@ const agenticPoints = [
 
   <section id="once-package" class="mx-auto max-w-3xl px-6 pb-20">
     <h2 class="text-3xl font-semibold tracking-tight text-white">
-      What is the BigConfig package <code
+      What is the <code
         class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-yellow-400"
         >once</code
-      >
+      > BigConfig Package
     </h2>
     <p class="mt-6 leading-relaxed text-neutral-300">
       <a
@@ -326,7 +326,7 @@ const agenticPoints = [
           class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-yellow-400"
           >once</code
         ></a
-      > is the BigConfig package that turns any ONCE application into a
+      > is the Once BigConfig Package that turns any ONCE application into a
       single-command deployment. It provisions a server (Hetzner Cloud,
       Oracle Cloud, or a host you bring yourself), wires up Cloudflare DNS,
       configures Resend SMTP end-to-end (DKIM and SPF included), and runs
