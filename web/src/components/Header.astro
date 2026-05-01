@@ -71,12 +71,10 @@ const isActive = (href: string) =>
           class="absolute right-0 mt-2 hidden w-48 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900 shadow-lg"
         >
           <a
-            href="/me"
+            href="/me/packages"
             class:list={[
               'block px-4 py-2.5 text-sm transition hover:bg-neutral-800 hover:text-yellow-400',
-              isActive('/me') && !isActive('/me/applications')
-                ? 'text-yellow-400'
-                : 'text-neutral-200',
+              isActive('/me/packages') ? 'text-yellow-400' : 'text-neutral-200',
             ]}>My packages</a
           >
           <a

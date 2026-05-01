@@ -56,7 +56,7 @@ import Layout from '~/layouts/Layout.astro';
   const status = document.getElementById('login-status') as HTMLElement;
 
   if (pb.authStore.isValid) {
-    location.href = '/me';
+    location.href = '/me/packages';
   }
 
   button?.addEventListener('click', async () => {
@@ -71,7 +71,8 @@ import Layout from '~/layouts/Layout.astro';
       const avatarUrl = meta.avatarURL || meta.avatarUrl || '';
       if (avatarUrl) localStorage.setItem('user_avatar_url', avatarUrl);
       status.textContent = 'Signed in. Redirecting…';
-      const next = new URLSearchParams(location.search).get('next') || '/me';
+      const next =
+        new URLSearchParams(location.search).get('next') || '/me/packages';
       location.href = next;
     } catch (err) {
       console.error(err);

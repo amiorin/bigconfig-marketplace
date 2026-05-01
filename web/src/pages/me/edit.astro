@@ -5,7 +5,7 @@ import { TAG_GROUPS } from '~/lib/tags';
 
 <Layout title="Edit package — Made with BigConfig">
   <section class="mx-auto max-w-3xl px-6 pt-20 pb-24">
-    <a href="/me" class="text-sm text-neutral-400 hover:text-yellow-400"
+    <a href="/me/packages" class="text-sm text-neutral-400 hover:text-yellow-400"
       >← Back to my packages</a
     >
     <div class="mt-6">
@@ -185,7 +185,7 @@ import { TAG_GROUPS } from '~/lib/tags';
     try {
       await pb.collection('packages').update(id, payload);
       status.textContent = 'Saved.';
-      setTimeout(() => (location.href = '/me'), 800);
+      setTimeout(() => (location.href = '/me/packages'), 800);
     } catch (err: any) {
       console.error(err);
       status.textContent = formatPbError(err, 'Save failed.');
@@ -196,7 +196,7 @@ import { TAG_GROUPS } from '~/lib/tags';
     if (!confirm('Delete this package? This cannot be undone.')) return;
     try {
       await pb.collection('packages').delete(id);
-      location.href = '/me';
+      location.href = '/me/packages';
     } catch (err: any) {
       console.error(err);
       status.classList.remove('hidden');

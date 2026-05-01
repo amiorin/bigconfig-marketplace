@@ -134,9 +134,9 @@ import { TAG_GROUPS } from '~/lib/tags';
     try {
       await pb.collection('packages').create(payload);
       status.textContent =
-        "Submitted. We'll review it shortly — you can track it on /me.";
+        "Submitted. We'll review it shortly — you can track it on /me/packages.";
       form.reset();
-      setTimeout(() => (location.href = '/me'), 1500);
+      setTimeout(() => (location.href = '/me/packages'), 1500);
     } catch (err: any) {
       console.error(err);
       status.textContent = formatPbError(err, 'Submission failed.');
