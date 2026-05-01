@@ -44,7 +44,9 @@ const submitterName = app.expand?.submitter?.name || app.expand?.submitter?.id |
   <div class="flex items-start justify-between gap-4">
     <div>
       <h3 class="text-xl font-semibold text-white">{app.name}</h3>
-      <div class="mt-1 text-xs text-neutral-500">by {submitterName}</div>
+      <div class="mt-1 text-xs text-neutral-500">
+        submitted by {submitterName}
+      </div>
     </div>
     {
       app.stars > 0 && (
