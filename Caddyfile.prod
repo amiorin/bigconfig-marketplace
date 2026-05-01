@@ -6,15 +6,12 @@
 }
 
 :80 {
-	handle /_* {
-		reverse_proxy localhost:8090
-	}
-
-	handle /api* {
-		reverse_proxy localhost:8090
+	handle /up {
+		header Content-Type text/plain; charset=utf-8
+		respond `OK` 200
 	}
 
 	handle {
-		reverse_proxy localhost:4321
+		reverse_proxy localhost:8090
 	}
 }

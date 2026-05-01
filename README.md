@@ -14,24 +14,32 @@ Inspired by [madewithpocketbase.com](https://www.madewithpocketbase.com/).
   same-origin by PocketBase.
 - **Tailwind CSS v4** — styling, via the Vite plugin.
 - **Caddy** — local dev reverse proxy that fronts both servers under
-  `https://localhost`.
+  `https://localhost`; production edge proxy on `:80`.
+- **Litestream** — restores PocketBase SQLite from S3 on cold boot and streams
+  changes continuously.
+- **Hivemind + Tini** — run Caddy and Litestream-supervised PocketBase in the
+  production container.
 
-Single-origin in production: PocketBase serves `/api/*` and the static site
-`/*`. No CORS, no separate hosting.
+Single-origin in production: Caddy listens on `:80`, serves `/up` for ONCE, and
+proxies everything else to PocketBase on `:8090`. PocketBase serves `/api/*`,
+`/_/*`, and the baked static site from `/pb/pb_public`.
 
 ## Layout
 
 ```
 .
-├── .github/workflows/rebuild.yml   # repository_dispatch → build & push image
 ├── pocketbase/
 │   ├── pb_migrations/              # collection schema as code (committed)
 │   ├── pb_hooks/                   # JS hooks: enrichment, dispatch, rules
 │   └── pb_public/                  # ← Astro build output (gitignored)
 ├── web/                            # Astro project (outDir → ../pocketbase/pb_public)
 ├── Caddyfile                       # dev reverse proxy
+├── Caddyfile.prod                  # production Caddy config copied into image
 ├── Procfile                        # pb + web + caddy
-└── Dockerfile                      # PB binary + migrations + hooks + built site
+├── Procfile.prod                   # production caddy + litestream process list
+├── entrypoint.sh                   # restore DB, upsert superuser, run PB via Litestream
+├── litestream.yml                  # S3 replica config
+└── Dockerfile                      # ONCE-compatible runtime image
 ```
 
 ## Prerequisites
@@ -52,8 +60,8 @@ cd web && npm install && cd ..
 Edit `.envrc` for your environment. Required vars:
 
 - `PUBLIC_PB_URL` — where the browser/SDK reaches PocketBase. In dev,
-  `https://localhost` (via Caddy). In CI, the prod PB URL. In the deployed
-  image, `''` (same-origin).
+  `https://localhost` (via Caddy). In the deployed image, the Dockerfile
+  defaults it to `''` for same-origin requests.
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — OAuth, configured in PB admin.
 
 Optional:
@@ -96,20 +104,69 @@ cd pocketbase && ./pocketbase migrate create <name>
 cd web && npm run build                   # writes to ../pocketbase/pb_public
 ```
 
-`PUBLIC_PB_URL` is **inlined into the static bundle at build time**, so the
-build must know the deploy target. The Dockerfile takes it as a build arg.
+`PUBLIC_PB_URL` is **inlined into the static bundle at build time**. The
+Dockerfile defaults it to an empty string for same-origin production requests.
+Pass a public PocketBase URL as a build arg only if the static build should
+fetch live approved records.
 
 ## Docker
 
 ```sh
-docker build --build-arg PUBLIC_PB_URL=https://example.com -t bigconfig-marketplace .
-docker run -p 8090:8090 -v $PWD/pb_data:/pb/pb_data bigconfig-marketplace
+docker build -t bigconfig-marketplace .
+docker run -p 80:80 \
+  -v bigconfig-marketplace-data:/storage \
+  -e LITESTREAM_BUCKET=my-bucket \
+  -e LITESTREAM_PATH=bigconfig-marketplace/data.db \
+  -e LITESTREAM_REGION=us-east-1 \
+  -e LITESTREAM_ACCESS_KEY_ID=... \
+  -e LITESTREAM_SECRET_ACCESS_KEY=... \
+  bigconfig-marketplace
 ```
 
-CI (`.github/workflows/rebuild.yml`) builds and pushes to GHCR on every push to
-`main`, on `workflow_dispatch`, and on `repository_dispatch` events of type
-`rebuild-site` (sent by PB hooks when packages are approved, updated, or
-nightly-refreshed).
+The image is ONCE-compatible: it listens on `:80`, responds to `GET /up`, and
+stores persistent PocketBase data under `/storage/pb_data`. The static site is
+baked into the image at `/pb/pb_public`; only the SQLite data directory moved to
+`/storage`.
+
+### PocketBase directories
+
+Development keeps PocketBase's conventional project-local layout:
+
+- data: `pocketbase/pb_data`
+- public files: `pocketbase/pb_public`
+- hooks: `pocketbase/pb_hooks`
+- migrations: `pocketbase/pb_migrations`
+
+Production uses explicit absolute paths because
+[ONCE-compatible applications](https://github.com/basecamp/once#making-a-once-compatible-application)
+must serve HTTP on port `80`, expose `/up`, and keep persistent data under
+`/storage`. The container starts PocketBase with:
+
+```sh
+pocketbase serve \
+  --http=0.0.0.0:8090 \
+  --dir=/storage/pb_data \
+  --publicDir=/pb/pb_public \
+  --hooksDir=/pb/pb_hooks \
+  --migrationsDir=/pb/pb_migrations
+```
+
+`SUPERUSER_EMAIL` / `SUPERUSER_PASSWORD`, when set, use the same explicit
+directory flags for `pocketbase superuser upsert`.
+
+Required Litestream runtime variables:
+
+- `LITESTREAM_BUCKET`
+- `LITESTREAM_PATH`
+- `LITESTREAM_REGION`
+- `LITESTREAM_ACCESS_KEY_ID`
+- `LITESTREAM_SECRET_ACCESS_KEY`
+
+Optional runtime variables:
+
+- `LITESTREAM_ENDPOINT` — custom S3-compatible endpoint for R2, MinIO, etc.
+- `SUPERUSER_EMAIL` / `SUPERUSER_PASSWORD` — upserted on container start when
+  both are set.
 
 ## How it works
 
