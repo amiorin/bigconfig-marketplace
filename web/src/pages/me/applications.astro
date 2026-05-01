@@ -60,7 +60,7 @@ import Layout from '~/layouts/Layout.astro';
 
 <script>
   import PocketBase from 'pocketbase';
-  import { escapeHtml } from '../lib/pb';
+  import { escapeHtml } from '../../lib/pb';
 
   const pb = new PocketBase(import.meta.env.PUBLIC_PB_URL || '');
   const gate = document.getElementById('auth-gate')!;
