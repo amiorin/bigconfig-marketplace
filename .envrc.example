@@ -1,6 +1,7 @@
-# Reference values for PocketBase Google OAuth. Not consumed as env vars —
-# paste them into the PocketBase admin UI under
-# Settings → Auth providers → Google.
+# Google OAuth credentials. Applied to the `_pb_users_auth_` collection on
+# every bootstrap by `pb_hooks/google_oauth.pb.js`; restart PocketBase after
+# rotating. If either is empty the hook logs and leaves the existing
+# provider config untouched.
 export GOOGLE_CLIENT_ID=
 export GOOGLE_CLIENT_SECRET=
 

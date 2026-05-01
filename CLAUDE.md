@@ -117,6 +117,10 @@ Mirrors `packages.pb.js` with two differences:
 - `onRecordCreateRequest` also calls `validateDockerImage()` before saving.
 - Nightly cron runs at `15 3 * * *` (staggered after packages).
 
+### `google_oauth.pb.js` — Google OAuth2 provider config
+
+`onBootstrap` reads `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` from the environment and overwrites the Google provider on `_pb_users_auth_` via `unmarshal()`. Runs on every PocketBase start, so rotating credentials only requires a container restart. Logs and skips if either env var is unset, leaving any existing provider config untouched.
+
 ## Commands
 
 ```sh
@@ -160,7 +164,7 @@ Use the same explicit directory flags for `pocketbase superuser upsert`.
 ## Environment variables
 
 - `PUBLIC_PB_URL` — absolute origin where the browser/SDK reaches PocketBase. Build-time, baked into the static bundle. Must not be `''` or relative (breaks Google SSO via page-path-relative URLs). Dockerfile default is `https://localhost`.
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth credentials. Not consumed as env vars; configured manually in PB admin → Settings → Auth providers → Google. The `.envrc.example` entries are reference holders only.
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth credentials. Applied to `_pb_users_auth_` on every bootstrap by `pb_hooks/google_oauth.pb.js`; restart the container after rotating. If either is unset the hook logs and leaves the existing config untouched.
 - `GITHUB_TOKEN` — optional, raises rate limit for the GitHub API enrichment in `utils.js`.
 - `DISPATCH_REPO` — target repository in `owner/repo` form that receives the `repository_dispatch` event (`event_type: rebuild-site`).
 - `DISPATCH_PAT` — GitHub Personal Access Token with `repo` scope on `DISPATCH_REPO`, used to POST `/repos/{owner}/{repo}/dispatches`. Without both vars `dispatchRebuild()` logs and skips.
