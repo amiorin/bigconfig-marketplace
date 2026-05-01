@@ -29,6 +29,17 @@ const pushed = app.pushed_at
       day: 'numeric',
     })
   : null;
+
+const usePrompt = `Deploy the ONCE application ${app.name} using the Once BigConfig Package.
+
+Docker image: ${app.docker_image}
+Source repository: ${app.github_url}
+
+Generate a bb.edn that adds io.github.amiorin/once as the dependency and describes this application with a host plus the Docker image above.
+
+Ask me for every missing value before writing or running anything, including the domain or host, compute provider, DNS provider, SMTP provider, regions, credentials, and any storage or backup settings.
+
+After I confirm the generated bb.edn, run bb once create, watch the output, and iterate on failures. Also tell me how to tear it down with bb once delete.`;
 ---
 
 <Layout title={`${app.name} — BigConfig Marketplace`} description={app.description}>
@@ -80,18 +91,22 @@ const pushed = app.pushed_at
           class="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-8"
         >
           <div class="flex items-center justify-between gap-4">
-            <h2 class="text-lg font-semibold text-white">Docker image</h2>
+            <h2 class="text-lg font-semibold text-white">Use it</h2>
             <button
-              id="copy-image"
+              id="copy-use-prompt"
               type="button"
-              data-image={app.docker_image}
+              data-prompt={usePrompt}
               class="rounded-full border border-neutral-700 px-3 py-1 text-xs font-semibold text-neutral-200 hover:border-yellow-400 hover:text-yellow-400"
-            >Copy</button>
+            >Copy prompt</button>
           </div>
+          <p class="mt-3 text-sm text-neutral-400">
+            Give this prompt to your agent to deploy the image with the Once
+            BigConfig Package.
+          </p>
           <pre
-            class="mt-4 overflow-x-auto rounded-lg border border-neutral-800 bg-neutral-950 p-3 text-xs text-neutral-300"><code>{app.docker_image}</code></pre>
+            class="mt-4 whitespace-pre-wrap rounded-lg border border-neutral-800 bg-neutral-950 p-3 text-xs leading-relaxed text-neutral-300"><code>{usePrompt}</code></pre>
           <p class="mt-4 text-sm text-neutral-400">
-            Deploy with the <a href="/packages/amiorin/once" class="text-yellow-400 hover:underline">once</a> package on a fresh VPS.
+            The prompt follows the documented <a href="/documentation#once-package" class="text-yellow-400 hover:underline">Once BigConfig Package</a> flow.
           </p>
         </div>
         {
@@ -153,11 +168,11 @@ const pushed = app.pushed_at
 </Layout>
 
 <script>
-  const btn = document.getElementById('copy-image') as HTMLButtonElement | null;
+  const btn = document.getElementById('copy-use-prompt') as HTMLButtonElement | null;
   btn?.addEventListener('click', async () => {
-    const image = btn.dataset.image ?? '';
+    const prompt = btn.dataset.prompt ?? '';
     try {
-      await navigator.clipboard.writeText(image);
+      await navigator.clipboard.writeText(prompt);
       const prev = btn.textContent;
       btn.textContent = 'Copied';
       setTimeout(() => (btn.textContent = prev), 1200);
