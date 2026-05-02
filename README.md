@@ -1,7 +1,7 @@
 # bigconfig marketplace
 
 A "Made with BigConfig" site: a curated, public index of GitHub repos that are
-[BigConfig](https://bigconfig.it) packages. Visitors browse and search;
+[BigConfig](https://bigconfig.ai) packages. Visitors browse and search;
 signed-in users submit and edit their own packages.
 
 Inspired by [madewithpocketbase.com](https://www.madewithpocketbase.com/).
