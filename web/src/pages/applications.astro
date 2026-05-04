@@ -92,7 +92,7 @@ const all = await fetchApprovedApplications();
               data-description={(a.description || '').toLowerCase()}
               data-tags={(a.tags || []).join(',')}
             >
-              <ApplicationCard app={a} />
+              <ApplicationCard app={a} showType />
             </div>
           ))}
         </div>

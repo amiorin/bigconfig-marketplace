@@ -43,7 +43,11 @@ const submitterName = pkg.expand?.submitter?.name || pkg.expand?.submitter?.id |
   }
   <div class="flex items-start justify-between gap-4">
     <div>
-      <h3 class="text-xl font-semibold text-white">{pkg.name}</h3>
+      <h3 class="text-xl text-white">
+        <span class="font-normal">{owner}</span>
+        <span class="text-neutral-500"> / </span>
+        <span class="font-semibold">{repo}</span>
+      </h3>
       <div class="mt-1 text-xs text-neutral-500">
         added by {submitterName}
       </div>

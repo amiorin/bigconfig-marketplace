@@ -92,7 +92,7 @@ const all = await fetchApprovedPackages();
               data-description={(p.description || '').toLowerCase()}
               data-tags={(p.tags || []).join(',')}
             >
-              <PackageCard pkg={p} />
+              <PackageCard pkg={p} showType />
             </div>
           ))}
         </div>
