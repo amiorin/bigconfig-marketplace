@@ -32,14 +32,21 @@ const pushed = app.pushed_at
 
 const usePrompt = `Deploy the ONCE application ${app.name} using the Once BigConfig Package.
 
+Once BigConfig Package: https://github.com/bigconfig-ai/once
 Docker image: ${app.docker_image}
-Source repository: ${app.github_url}
 
-Generate a bb.edn that adds io.github.amiorin/once as the dependency and describes this application with a host plus the Docker image above.
-
-Ask me for every missing value before writing or running anything, including the domain or host, compute provider, DNS provider, SMTP provider, regions, credentials, and any storage or backup settings.
-
-After I confirm the generated bb.edn, run bb once create, watch the output, and iterate on failures. Also tell me how to tear it down with bb once delete.`;
+Steps:
+- make sure that Babashka, OpenTofu, and Ansible are installed or help me to install them
+- review the source code of Once BigConfig Package (https://raw.githubusercontent.com/bigconfig-ai/once/refs/heads/main/CLAUDE.md)
+- create the bb.edn file
+- create the .envrc file for the environment variables
+- don't create the deps.edn file
+- add Once BigConfig Package as a dependency to bb.edn
+- create only one task to create and delete the package
+- vendor the options inside the bb.edn file
+- all environment variables start with BC_PAR_
+- ask me to confirm all the options
+- after I confirm the generated bb.edn, run bb package create, watch the output, and iterate on failures. Also tell me how to tear it down with bb once delete`;
 ---
 
 <Layout title={`${app.name} — BigConfig Marketplace`} description={app.description}>
