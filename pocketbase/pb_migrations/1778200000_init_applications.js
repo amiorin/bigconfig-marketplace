@@ -2,7 +2,7 @@
 
 // Initial schema for the `applications` collection.
 // Mirrors `packages` plus a required `docker_image` field.
-// An application is a ONCE-compatible web app: Docker container, HTTP on :80,
+// An application is a ONCE-ready web app: Docker container, HTTP on :80,
 // /up healthcheck, persistent data in /storage.
 
 migrate(

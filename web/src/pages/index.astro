@@ -24,30 +24,88 @@ items.sort((a, b) =>
 const recent = items.slice(0, 6);
 const packageCount = packages.length;
 const applicationCount = applications.length;
-const totalCount = packageCount + applicationCount;
+
+const features = [
+  {
+    title: 'Any infrastructure',
+    body: 'Databases, message brokers, observability stacks — any workload you operate today can be packaged. AWS, GCP, Azure, kubernetes, bare metal.',
+    icon: 'M4 6h16M4 12h16M4 18h16',
+  },
+  {
+    title: 'Agent-operations, not click-ops',
+    body: "Every runbook — backup, upgrade, failover, scale — is a workflow the agent can execute. If it's not automated, it's not in the package.",
+    icon: 'M13 10V3L4 14h7v7l9-11h-7z',
+  },
+  {
+    title: 'Customizable with the agent',
+    body: 'Buyers adapt your package in plain English. The agent edits config, they review the diff. No forks, no YAML hell.',
+    icon: 'M12 4v16m8-8H4',
+  },
+  {
+    title: 'Source code included',
+    body: 'Every package ships with full source. Buyers can audit it, extend it, and keep running it even if you move on. Trust is the product.',
+    icon: 'M8 9l-4 3 4 3m8-6l4 3-4 3M14 4l-4 16',
+  },
+  {
+    title: 'Revenue share, built in',
+    body: 'Set your price. The marketplace handles billing, licensing, and distribution. You keep the majority of every sale.',
+    icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 12v2m0-14a4 4 0 100 8 4 4 0 000-8z',
+  },
+  {
+    title: 'Stay relevant in Agentic DevOps',
+    body: "Your decade of operating production systems doesn't become obsolete — it becomes the training data for agents. Get paid for what you already know.",
+    icon: 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z',
+  },
+];
+
+const featuredPackages = [
+  {
+    name: 'ClickHouse',
+    author: 'BigConfig',
+    tagline: 'Self-hosted data warehouse, operated by your agent.',
+    tags: ['source-available', 'database', 'analytics'],
+    href: '/featured/clickhouse',
+  },
+  {
+    name: 'Once',
+    author: 'BigConfig',
+    tagline: 'Self-host any Basecamp ONCE app, in a single command.',
+    tags: ['open-source', 'self-hosted', 'apps'],
+    href: '/featured/once',
+    palette: 'cyan',
+  },
+  {
+    name: 'Walter',
+    author: 'BigConfig',
+    tagline: 'Standardized cloud dev environments for your team, on any infrastructure.',
+    tags: ['open-source', 'self-hosted', 'dev-env'],
+    href: '/featured/walter',
+    palette: 'cyan',
+  },
+];
 ---
 
-<Layout title="BigConfig Marketplace — community packages & applications">
+<Layout title="BigConfig Marketplace — Agentic DevOps packages">
   <section class="mx-auto max-w-6xl px-6 pt-20 pb-28 text-center">
     <div
       class="mb-6 inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/60 px-4 py-1.5 text-xs font-medium text-neutral-300"
     >
       <span class="h-1.5 w-1.5 rounded-full bg-yellow-400"></span>
-      Community marketplace · BigConfig packages & ONCE applications
+      Marketplace · BigConfig packages & ONCE applications
     </div>
     <h1
       class="mx-auto max-w-4xl text-5xl font-semibold tracking-tight text-white md:text-7xl"
     >
-      BigConfig<br />
+      The App Store<br />
       <span
         class="bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500 bg-clip-text text-transparent"
-        >Marketplace</span
+        >for Agentic DevOps.</span
       >
     </h1>
     <p class="mx-auto mt-6 max-w-2xl text-lg text-neutral-300 md:text-xl">
-      Browse a directory of community-built BigConfig packages and ONCE
-      applications. Add any public package or compatible application you find
-      so others can discover and deploy it.
+      Browse infrastructure packages and ONCE-ready applications your
+      agent can operate. Or publish your own and turn a decade of production
+      experience into recurring revenue.
     </p>
     <div
       class="mx-auto mt-10 grid max-w-md grid-cols-1 gap-3 sm:max-w-2xl sm:grid-cols-2"
@@ -74,7 +132,7 @@ const totalCount = packageCount + applicationCount;
       >
     </div>
     <p class="mt-6 text-sm text-neutral-500">
-      A public index for useful packages and deployable applications.
+      For operators who know how platforms actually fail at 3am.
     </p>
   </section>
 
@@ -83,33 +141,121 @@ const totalCount = packageCount + applicationCount;
       class="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-800 md:grid-cols-4"
     >
       <div class="bg-neutral-950 p-6 text-center">
-        <div class="text-3xl font-semibold text-white md:text-4xl">
-          {packageCount}
-        </div>
-        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">
-          packages
-        </div>
+        <div class="text-3xl font-semibold text-white md:text-4xl">{packageCount}</div>
+        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">packages</div>
       </div>
       <div class="bg-neutral-950 p-6 text-center">
-        <div class="text-3xl font-semibold text-white md:text-4xl">
-          {applicationCount}
-        </div>
-        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">
-          applications
-        </div>
+        <div class="text-3xl font-semibold text-white md:text-4xl">{applicationCount}</div>
+        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">applications</div>
       </div>
       <div class="bg-neutral-950 p-6 text-center">
         <div class="text-3xl font-semibold text-white md:text-4xl">Source</div>
-        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">
-          on github
-        </div>
+        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">code included</div>
       </div>
       <div class="bg-neutral-950 p-6 text-center">
         <div class="text-3xl font-semibold text-white md:text-4xl">Agent</div>
-        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">
-          ready
-        </div>
+        <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">operated, end to end</div>
       </div>
+    </div>
+  </section>
+
+  <section id="features" class="mx-auto max-w-6xl px-6 py-24">
+    <div class="mb-16 text-center">
+      <div
+        class="mb-4 inline-block text-xs font-semibold uppercase tracking-widest text-yellow-400"
+      >
+        What's in a package
+      </div>
+      <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        Production infrastructure,<br />in plain English.
+      </h2>
+      <p class="mx-auto mt-4 max-w-2xl text-neutral-400">
+        Every BigConfig package in the marketplace ships with the same
+        guarantees — so buyers know what they're getting and creators know
+        what to build.
+      </p>
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {
+        features.map((f) => (
+          <div class="group rounded-2xl border border-neutral-800 bg-neutral-900/40 p-8 transition hover:border-yellow-400/40 hover:bg-neutral-900">
+            <div class="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-yellow-400/10 text-yellow-400 ring-1 ring-yellow-400/20">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d={f.icon} />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-white">{f.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-neutral-400">{f.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section id="featured" class="mx-auto max-w-6xl px-6 py-24">
+    <div class="mb-16 text-center">
+      <div
+        class="mb-4 inline-block text-xs font-semibold uppercase tracking-widest text-yellow-400"
+      >
+        Featured packages
+      </div>
+      <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        Browse the shelf.
+      </h2>
+      <p class="mx-auto mt-4 max-w-2xl text-neutral-400">
+        A curated set of core infrastructure packages. More land every week —
+        and yours could be next.
+      </p>
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {
+        featuredPackages.map((p) => {
+          const Tag = p.href ? 'a' : 'div';
+          const cardClass = p.href
+            ? p.palette === 'cyan'
+              ? 'border-[#62e1e9]/30 bg-[#62e1e9]/5 hover:border-[#62e1e9]/60 hover:bg-[#62e1e9]/10'
+              : 'border-yellow-400/30 bg-yellow-400/5 hover:border-yellow-400/60 hover:bg-yellow-400/10'
+            : 'border-neutral-800 bg-neutral-900/40 hover:border-yellow-400/40 hover:bg-neutral-900';
+          return (
+            <Tag
+              href={p.href}
+              class:list={['flex flex-col rounded-2xl border p-8 transition', cardClass]}
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <h3 class="text-xl font-semibold text-white">{p.name}</h3>
+                  {p.author === 'Coming soon' ? (
+                    <div class="mt-2">
+                      <span class="inline-block rounded-full bg-yellow-400/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-yellow-400 ring-1 ring-yellow-400/20">
+                        Coming soon
+                      </span>
+                    </div>
+                  ) : (
+                    <div class="mt-1 text-xs text-neutral-500">by {p.author}</div>
+                  )}
+                </div>
+              </div>
+              <p class="mt-4 flex-1 text-sm leading-relaxed text-neutral-400">{p.tagline}</p>
+              <div class="mt-5 flex flex-wrap gap-2">
+                {p.tags.map((t) => (
+                  <span class="rounded-full bg-neutral-800/80 px-2.5 py-0.5 text-xs text-neutral-300">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </Tag>
+          );
+        })
+      }
     </div>
   </section>
 
@@ -121,11 +267,10 @@ const totalCount = packageCount + applicationCount;
         Recent entries
       </div>
       <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
-        Browse the shelf.
+        Fresh from the community.
       </h2>
       <p class="mx-auto mt-4 max-w-2xl text-neutral-400">
-        Latest community-built BigConfig packages and ONCE applications. New
-        entries land every week.
+        Latest community-built BigConfig packages and ONCE applications.
       </p>
     </div>
     {
@@ -178,4 +323,243 @@ const totalCount = packageCount + applicationCount;
       )
     }
   </section>
+
+  <section id="creators" class="mx-auto max-w-6xl px-6 py-24">
+    <div class="rounded-3xl border border-neutral-800 bg-neutral-900/40 p-10 md:p-16">
+      <div class="grid gap-12 md:grid-cols-2 md:items-center">
+        <div>
+          <div
+            class="mb-4 text-xs font-semibold uppercase tracking-widest text-yellow-400"
+          >
+            For creators
+          </div>
+          <h2 class="text-3xl font-semibold tracking-tight text-white md:text-4xl">
+            You've operated this in production.<br />Now get paid for it.
+          </h2>
+          <p class="mt-6 text-neutral-400">
+            Agentic DevOps is not going to eliminate operators — it's going
+            to eliminate operators who don't package their knowledge. Turn
+            the runbooks you've built over a career into BigConfig packages,
+            list them in the marketplace, and earn revenue every time an
+            agent deploys them.
+          </p>
+          <div class="mt-8 flex flex-col gap-4 sm:flex-row">
+            <a
+              href="#contact"
+              class="rounded-full bg-yellow-400 px-6 py-3 text-center text-sm font-semibold text-neutral-950 transition hover:bg-yellow-300"
+            >
+              Become an creator
+            </a>
+            <a
+              href="https://www.bigconfig.ai"
+              class="rounded-full border border-neutral-700 px-6 py-3 text-center text-sm font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
+            >
+              Learn BigConfig
+            </a>
+          </div>
+        </div>
+        <ul class="grid list-none gap-6 pl-0">
+          <li class="rounded-xl border border-neutral-800 bg-neutral-950/60 p-6">
+            <div class="text-sm font-semibold text-yellow-400">Keep the majority</div>
+            <p class="mt-2 text-sm text-neutral-400">
+              Revenue is split between you and the marketplace. You price
+              the package, we handle billing and distribution.
+            </p>
+          </li>
+          <li class="rounded-xl border border-neutral-800 bg-neutral-950/60 p-6">
+            <div class="text-sm font-semibold text-yellow-400">Ship source, not secrets</div>
+            <p class="mt-2 text-sm text-neutral-400">
+              Buyers get the full source of your package. Trust is the
+              product — and it's what makes the package worth paying for.
+            </p>
+          </li>
+          <li class="rounded-xl border border-neutral-800 bg-neutral-950/60 p-6">
+            <div class="text-sm font-semibold text-yellow-400">One package, many deployments</div>
+            <p class="mt-2 text-sm text-neutral-400">
+              Write the runbook once. Every buyer's agent can deploy,
+              customize, and operate it on their own infrastructure.
+            </p>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="mx-auto max-w-6xl px-6 py-24">
+    <div class="rounded-3xl border border-neutral-800 bg-neutral-900/40 p-10 md:p-16">
+      <div
+        class="mb-4 text-xs font-semibold uppercase tracking-widest text-yellow-400"
+      >
+        How it works
+      </div>
+      <h2 class="max-w-3xl text-3xl font-semibold tracking-tight text-white md:text-4xl">
+        From your expertise to somebody's production — in four steps.
+      </h2>
+      <ol class="mt-12 grid list-none gap-10 pl-0 md:grid-cols-4">
+        <li>
+          <div class="mb-3 text-sm font-semibold text-yellow-400">01 — Learn</div>
+          <h3 class="text-lg font-semibold text-white">Pick up BigConfig</h3>
+          <p class="mt-2 text-sm text-neutral-400">
+            Clojure-based, Terraform-friendly, agent-native. A few days to
+            go from "what's this" to shipping your first package.
+          </p>
+        </li>
+        <li>
+          <div class="mb-3 text-sm font-semibold text-yellow-400">02 — Package</div>
+          <h3 class="text-lg font-semibold text-white">Encode the runbook</h3>
+          <p class="mt-2 text-sm text-neutral-400">
+            Backup, upgrade, failover, scale — every operation becomes a
+            workflow the agent can execute on the buyer's behalf.
+          </p>
+        </li>
+        <li>
+          <div class="mb-3 text-sm font-semibold text-yellow-400">03 — Publish</div>
+          <h3 class="text-lg font-semibold text-white">List in the marketplace</h3>
+          <p class="mt-2 text-sm text-neutral-400">
+            Set your price, tag it, describe the target infrastructure.
+            The marketplace handles discovery, licensing, and payouts.
+          </p>
+        </li>
+        <li>
+          <div class="mb-3 text-sm font-semibold text-yellow-400">04 — Earn</div>
+          <h3 class="text-lg font-semibold text-white">Get paid per deployment</h3>
+          <p class="mt-2 text-sm text-neutral-400">
+            Buyers pay, their agents deploy, you earn a revenue share on
+            every sale — indefinitely, not just on launch week.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="contact" class="mx-auto max-w-3xl px-6 py-24">
+    <div class="text-center">
+      <div
+        class="mb-4 inline-block text-xs font-semibold uppercase tracking-widest text-yellow-400"
+      >
+        Get access
+      </div>
+      <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        Request access
+      </h2>
+      <p class="mx-auto mt-4 max-w-xl text-neutral-400">
+        Let us know if you intend to buy, publish, or manage both. Our team
+        will contact you to assist with the next steps.
+      </p>
+    </div>
+
+    <form
+      id="marketplace-form"
+      class="mt-12 grid gap-5 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-8 md:p-10"
+    >
+      <div class="grid gap-5 md:grid-cols-2">
+        <label class="block text-sm">
+          <span class="mb-2 block font-medium text-neutral-200">Name</span>
+          <input
+            name="name"
+            type="text"
+            required
+            class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:border-yellow-400"
+            placeholder="Jane Doe"
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-2 block font-medium text-neutral-200">Work email</span>
+          <input
+            name="email"
+            type="email"
+            required
+            class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:border-yellow-400"
+            placeholder="jane@company.com"
+          />
+        </label>
+      </div>
+      <label class="block text-sm">
+        <span class="mb-2 block font-medium text-neutral-200">Company</span>
+        <input
+          name="company"
+          type="text"
+          required
+          class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:border-yellow-400"
+          placeholder="Acme Inc."
+        />
+      </label>
+      <div class="grid gap-5 md:grid-cols-2">
+        <label class="block text-sm">
+          <span class="mb-2 block font-medium text-neutral-200">I want to…</span>
+          <select
+            name="intent"
+            required
+            class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
+          >
+            <option value="">Select one…</option>
+            <option value="buy">Buy packages</option>
+            <option value="publish">Publish packages</option>
+            <option value="both">Both</option>
+          </select>
+        </label>
+        <label class="block text-sm">
+          <span class="mb-2 block font-medium text-neutral-200">Years operating production</span>
+          <select
+            name="experience"
+            required
+            class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
+          >
+            <option value="">Select one…</option>
+            <option value="0-2">0–2</option>
+            <option value="3-5">3–5</option>
+            <option value="6-10">6–10</option>
+            <option value="10+">10+</option>
+          </select>
+        </label>
+      </div>
+      <label class="block text-sm">
+        <span class="mb-2 block font-medium text-neutral-200">What would you build or buy?</span>
+        <textarea
+          name="message"
+          rows="4"
+          required
+          class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:border-yellow-400"
+          placeholder="Which infrastructure? What operations are painful today?"></textarea>
+      </label>
+      <button
+        type="submit"
+        class="mt-2 rounded-full bg-yellow-400 px-6 py-4 text-base font-semibold text-neutral-950 transition hover:bg-yellow-300 disabled:opacity-60"
+      >
+        Request access
+      </button>
+      <p
+        id="marketplace-form-status"
+        class="hidden text-center text-sm text-neutral-400"
+      >
+      </p>
+    </form>
+  </section>
 </Layout>
+
+<script is:inline>
+  const form = document.getElementById('marketplace-form');
+  const status = document.getElementById('marketplace-form-status');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const button = form.querySelector('button[type=submit]');
+    const data = Object.fromEntries(new FormData(form).entries());
+    button.disabled = true;
+    status.classList.remove('hidden');
+    status.textContent = 'Sending…';
+    try {
+      const res = await fetch('https://forms.bigconfig.ai/form/marketplace', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('bad status ' + res.status);
+      status.textContent = "Thanks — we'll be in touch shortly.";
+      form.reset();
+    } catch (err) {
+      status.textContent =
+        "Something went wrong. Email marketplace@bigconfig.ai and we'll sort it out.";
+      button.disabled = false;
+    }
+  });
+</script>

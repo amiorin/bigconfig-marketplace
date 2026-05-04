@@ -1,0 +1,335 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import Tabs from '~/components/Tabs.astro';
+import TabItem from '~/components/TabItem.astro';
+import YouTube from '~/components/YouTube.astro';
+
+const features = [
+  {
+    title: 'Own the stack',
+    body: 'The app you vibecoded, running on infrastructure you own. No vendor lock-in, no hosting subscription, no surprise bill.',
+    icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+  },
+  {
+    title: 'Multi-cloud provisioning',
+    body: 'Hetzner Cloud, Oracle Cloud, or bring your own server with no-infra. One package, every target — swap profiles in bb.edn.',
+    icon: 'M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z',
+  },
+  {
+    title: 'DNS, handled',
+    body: 'Cloudflare records are generated from your config — including the records needed for SMTP domain verification.',
+    icon: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+  },
+  {
+    title: 'SMTP, handled',
+    body: 'Resend is wired up end-to-end — domain verification, DKIM, SPF — so your ONCE app can send mail from day one.',
+    icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+  },
+  {
+    title: 'Ansible for the host',
+    body: 'Docker, firewall, TLS, s-nail SMTP test harness — every machine-level concern codified as a playbook, not a wiki page.',
+    icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+  },
+  {
+    title: 'One-command lifecycle',
+    body: '`bb once create` and `bb once delete`. Agent-operable, reproducible, reversible — spin it up, tear it down, leave no orphaned resources.',
+    icon: 'M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+  },
+];
+
+const planMd = `install ghcr.io/amiorin/big-config-website:latest
+using https://github.com/amiorin/once
+with the domain www.bigconfig.space`;
+
+const bbEdn = `{:deps  {io.github.amiorin/once {:git/url "https://github.com/amiorin/once"
+                                 :git/sha "8ffbbc2ea0974365575c7ee44b7d890e69447144"}}
+ :tasks {:requires ([io.github.amiorin.once.package :as pkg])
+         package   {:doc  "bb package create | bb package delete"
+                    :task (pkg/once*
+                           *command-line-args*
+                           {:big-config.render/profile "online"
+                            :big-config.workflow/params
+                            {:domain  "bigconfig.online"
+                             :package "online"
+                             :once    {:applications [{:host  "www.bigconfig.online"
+                                                       :image "ghcr.io/amiorin/big-config-website:latest"}]}
+
+                             :provider-compute            "oci"
+                             :oci-config-file-profile     "DEFAULT"
+                             :oci-display-name            "bigconfig-online"
+                             :oci-shape                   "VM.Standard.A1.Flex"
+                             :oci-ocpus                   1
+                             :oci-memory-in-gbs           6
+                             :oci-boot-volume-size-in-gbs 50
+                             :oci-boot-volume-vpus-per-gb 30
+                             :oci-ssh-authorized-keys     "~/.ssh/id_ed25519.pub"
+
+                             :provider-smtp   "resend"
+                             :resend-server   "smtp.resend.com"
+                             :resend-port     587
+                             :resend-username "resend"
+
+                             :provider-dns "cloudflare"
+
+                             :provider-backend "s3"}})}}}`;
+
+const runSh = `$ bb once create
+
+$ bb once delete`;
+---
+
+<Layout
+  title="BigConfig once — Self-host ONCE apps in a single command"
+  description="Deploy any Basecamp ONCE app to your own infrastructure. BigConfig provisions the server, wires up DNS and SMTP, and hands operations to your agent."
+  gradient="blue"
+>
+  <section class="mx-auto max-w-6xl px-6 pt-20 pb-28 text-center">
+    <div
+      class="mb-6 inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/60 px-4 py-1.5 text-xs font-medium text-neutral-300"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-[#62e1e9]"></span>
+      BigConfig package · Once
+    </div>
+    <h1
+      class="mx-auto max-w-4xl text-5xl font-semibold tracking-tight text-white md:text-7xl"
+    >
+      Self-host ONCE apps,<br />
+      <span
+        class="bg-gradient-to-r from-[#62e1e9] via-[#3a8cec] to-[#0652e9] bg-clip-text text-transparent"
+        >in a single command.</span
+      >
+    </h1>
+    <p class="mx-auto mt-6 max-w-2xl text-lg text-neutral-300 md:text-xl">
+      Deploy any Basecamp ONCE app or your own vibe-coded app to your own
+      infrastructure. BigConfig provisions the server, wires up DNS and SMTP,
+      configures the host, and hands operations to your agent.
+    </p>
+    <div
+      class="mx-auto mt-10 flex max-w-md flex-col items-stretch justify-center gap-4 px-4 sm:max-w-none sm:flex-row sm:items-center sm:px-0"
+    >
+      <a
+        href="#deploy"
+        class="rounded-full bg-[#0652e9] px-8 py-4 text-center text-base font-semibold text-white transition hover:bg-[#1e6cf3]"
+      >
+        Get started →
+      </a>
+      <a
+        href="https://github.com/amiorin/once"
+        class="rounded-full border border-neutral-700 px-8 py-4 text-center text-base font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
+      >
+        View on GitHub
+      </a>
+    </div>
+    <p class="mt-6 text-sm text-neutral-500">
+      For teams who want total control — without operational headaches.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-6 py-12">
+    <div
+      class="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-800 md:grid-cols-4"
+    >
+      {
+        [
+          ['Any', 'ONCE app, any cloud'],
+          ['1', 'command to deploy'],
+          ['Auto', 'DNS, SMTP, server config'],
+          ['Yours', 'app, data, and infrastructure'],
+        ].map(([stat, label]) => (
+          <div class="bg-neutral-950 p-6 text-center">
+            <div class="text-3xl font-semibold text-white md:text-4xl">{stat}</div>
+            <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">{label}</div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section id="features" class="mx-auto max-w-6xl px-6 py-24">
+    <div class="mb-16 text-center">
+      <div
+        class="mb-4 inline-block text-xs font-semibold uppercase tracking-widest text-[#62e1e9]"
+      >
+        What you get
+      </div>
+      <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        A deploy pipeline,<br />not a README.
+      </h2>
+      <p class="mx-auto mt-4 max-w-2xl text-neutral-400">
+        The BigConfig once package is everything between "I vibecoded the
+        application" and "it's live on my domain" — codified, agent-operable,
+        and yours to keep.
+      </p>
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {
+        features.map((f) => (
+          <div class="group rounded-2xl border border-neutral-800 bg-neutral-900/40 p-8 transition hover:border-[#62e1e9]/40 hover:bg-neutral-900">
+            <div class="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-[#62e1e9]/10 text-[#62e1e9] ring-1 ring-[#62e1e9]/20">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d={f.icon} />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-white">{f.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-neutral-400">{f.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section id="deploy" class="mx-auto max-w-6xl px-6 py-24">
+    <div class="mb-12 text-center">
+      <div
+        class="mb-4 inline-block text-xs font-semibold uppercase tracking-widest text-[#62e1e9]"
+      >
+        Deploy with your agent
+      </div>
+      <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        Describe it.<br />Your agent writes the config.
+      </h2>
+      <p class="mx-auto mt-4 max-w-2xl text-neutral-400">
+        Describe the deployment in plain English. Your agent refines the plan,
+        writes a single <code
+          class="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-sm text-[#62e1e9]"
+          >bb.edn</code
+        >, and runs it.
+      </p>
+    </div>
+
+    <div
+      class="code-tabs overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/40"
+    >
+      <Tabs>
+        <TabItem label="plan.md">
+          <pre class="overflow-x-auto text-sm leading-relaxed"><code class="font-mono text-neutral-300">{planMd}</code></pre>
+        </TabItem>
+        <TabItem label="bb.edn">
+          <pre class="overflow-x-auto text-sm leading-relaxed"><code class="font-mono text-neutral-300">{bbEdn}</code></pre>
+        </TabItem>
+        <TabItem label="Run">
+          <pre class="overflow-x-auto text-sm leading-relaxed"><code class="font-mono text-neutral-300">{runSh}</code></pre>
+        </TabItem>
+      </Tabs>
+    </div>
+  </section>
+
+  <section id="demo" class="mx-auto max-w-6xl px-6 py-24">
+    <div class="mb-12 text-center">
+      <div
+        class="mb-4 inline-block text-xs font-semibold uppercase tracking-widest text-[#62e1e9]"
+      >
+        Demo
+      </div>
+      <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        See it in action.
+      </h2>
+    </div>
+
+    <div
+      class="overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/40"
+    >
+      <YouTube id="d7NFy5pvqSE" si="yQTkWJfBFJqgoKo0" />
+    </div>
+  </section>
+
+  <section id="how" class="mx-auto max-w-6xl px-6 py-24">
+    <div class="rounded-3xl border border-neutral-800 bg-neutral-900/40 p-10 md:p-16">
+      <div
+        class="mb-4 text-xs font-semibold uppercase tracking-widest text-[#62e1e9]"
+      >
+        How it works
+      </div>
+      <h2 class="max-w-3xl text-3xl font-semibold tracking-tight text-white md:text-4xl">
+        Three steps from ONCE app to production.
+      </h2>
+      <ol class="mt-12 grid list-none gap-10 pl-0 md:grid-cols-3">
+        <li>
+          <div class="mb-3 text-sm font-semibold text-[#62e1e9]">01 — Describe</div>
+          <h3 class="text-lg font-semibold text-white">Tell your agent what you want</h3>
+          <p class="mt-2 text-sm text-neutral-400">
+            Which ONCE app, what size server, which domain. The agent turns
+            the conversation into a single <code class="rounded bg-neutral-800 px-1 py-0.5 font-mono text-xs text-[#62e1e9]">bb.edn</code>.
+          </p>
+        </li>
+        <li>
+          <div class="mb-3 text-sm font-semibold text-[#62e1e9]">02 — Deploy</div>
+          <h3 class="text-lg font-semibold text-white">Ship it to your infrastructure</h3>
+          <p class="mt-2 text-sm text-neutral-400">
+            <code class="rounded bg-neutral-800 px-1 py-0.5 font-mono text-xs text-[#62e1e9]">bb once create</code>
+            provisions the server, configures DNS and SMTP, installs Docker,
+            pulls the container, hands you a URL.
+          </p>
+        </li>
+        <li>
+          <div class="mb-3 text-sm font-semibold text-[#62e1e9]">03 — Operate</div>
+          <h3 class="text-lg font-semibold text-white">Hand ops over to the agent</h3>
+          <p class="mt-2 text-sm text-neutral-400">
+            Backups, upgrades, teardown — every runbook is a BigConfig
+            workflow your agent can execute on your behalf.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+</Layout>
+
+<style is:global>
+  .code-tabs {
+    --sl-color-text-accent: #62e1e9;
+    --sl-color-gray-3: rgb(163, 163, 163);
+    --sl-color-gray-5: rgb(38, 38, 38);
+    --sl-color-white: #fff;
+    --sl-line-height-headings: 1.4;
+    --sl-outline-offset-inside: -2px;
+  }
+  .code-tabs sl-tabs {
+    display: block;
+  }
+  .code-tabs .tablist-wrapper {
+    background: rgba(10, 10, 10, 0.6);
+    border-bottom: 1px solid rgb(38, 38, 38);
+    margin: 0;
+  }
+  .code-tabs [role='tablist'] {
+    border-bottom: 0;
+    padding: 0;
+    margin: 0;
+  }
+  .code-tabs [role='tab'] {
+    color: rgb(163, 163, 163);
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-bottom-width: 2px;
+  }
+  .code-tabs [role='tab'][aria-selected='true'] {
+    color: #fff;
+    background: rgba(23, 23, 23, 0.6);
+    border-color: #62e1e9;
+  }
+  .code-tabs [role='tab']:hover:not([aria-selected='true']) {
+    color: #fff;
+    background: rgba(23, 23, 23, 0.6);
+  }
+  .code-tabs [role='tabpanel'] {
+    padding: 1.5rem;
+    margin-top: 0;
+  }
+  @media (min-width: 768px) {
+    .code-tabs [role='tabpanel'] {
+      padding: 2rem;
+    }
+  }
+  .code-tabs pre {
+    margin: 0;
+  }
+</style>

@@ -1,0 +1,80 @@
+---
+const html = await Astro.slots.render('default');
+const matches = [...html.matchAll(/<sl-tab-item([^>]*)data-label="([^"]*)"([^>]*)>([\s\S]*?)<\/sl-tab-item>/g)];
+const tabs = matches.map(([, , label, , content], idx) => ({
+  label,
+  content,
+  id: `${idx}`,
+}));
+---
+
+<sl-tabs>
+  <div class="tablist-wrapper not-content">
+    <ul role="tablist">
+      {tabs.map((tab, i) => (
+        <li role="presentation" class="tab">
+          <a
+            role="tab"
+            href={`#tab-panel-${tab.id}`}
+            id={`tab-${tab.id}`}
+            aria-controls={`tab-panel-${tab.id}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            tabindex={i === 0 ? 0 : -1}
+          >
+            {tab.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+  {tabs.map((tab, i) => (
+    <section
+      role="tabpanel"
+      id={`tab-panel-${tab.id}`}
+      aria-labelledby={`tab-${tab.id}`}
+      hidden={i !== 0}
+      set:html={tab.content}
+    />
+  ))}
+</sl-tabs>
+
+<script>
+  class SlTabs extends HTMLElement {
+    constructor() {
+      super();
+      const tabs = [...this.querySelectorAll<HTMLAnchorElement>('[role="tab"]')];
+      const panels = [...this.querySelectorAll<HTMLElement>(':scope > [role="tabpanel"]')];
+
+      const select = (idx: number) => {
+        tabs.forEach((t, i) => {
+          const active = i === idx;
+          t.setAttribute('aria-selected', active ? 'true' : 'false');
+          t.setAttribute('tabindex', active ? '0' : '-1');
+        });
+        panels.forEach((p, i) => {
+          p.hidden = i !== idx;
+        });
+      };
+
+      tabs.forEach((tab, i) => {
+        tab.addEventListener('click', (e) => {
+          e.preventDefault();
+          select(i);
+          tab.focus();
+        });
+        tab.addEventListener('keydown', (e) => {
+          let next: number | null = null;
+          if (e.key === 'ArrowLeft') next = (i - 1 + tabs.length) % tabs.length;
+          else if (e.key === 'ArrowRight') next = (i + 1) % tabs.length;
+          else if (e.key === 'Home') next = 0;
+          else if (e.key === 'End') next = tabs.length - 1;
+          if (next === null) return;
+          e.preventDefault();
+          select(next);
+          tabs[next]?.focus();
+        });
+      });
+    }
+  }
+  customElements.define('sl-tabs', SlTabs);
+</script>

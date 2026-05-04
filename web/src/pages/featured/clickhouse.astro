@@ -1,0 +1,314 @@
+---
+import Layout from '~/layouts/Layout.astro';
+
+const features = [
+  {
+    title: 'Any infrastructure',
+    body: 'Deploy on AWS, GCP, Azure, bare metal, or your own kubernetes cluster. One package, every target.',
+    icon: 'M4 6h16M4 12h16M4 18h16',
+  },
+  {
+    title: 'Agent-operations, not click-ops',
+    body: 'Backups, upgrades, scaling, failover — delegate the runbook to your agent instead of paging a human.',
+    icon: 'M13 10V3L4 14h7v7l9-11h-7z',
+  },
+  {
+    title: 'Monitoring UI for humans',
+    body: 'A built-in console so operators can see cluster health, query load, and replication status at a glance.',
+    icon: 'M3 3v18h18M7 14l4-4 4 4 5-5',
+  },
+  {
+    title: 'Customizable with your agent',
+    body: 'Adapt the package to your infrastructure in plain English. The agent edits the config, you review the diff.',
+    icon: 'M12 4v16m8-8H4',
+  },
+  {
+    title: 'Source code available',
+    body: 'No black boxes. Read the package, fork it, audit it, extend it. Your infrastructure stays yours.',
+    icon: 'M8 9l-4 3 4 3m8-6l4 3-4 3M14 4l-4 16',
+  },
+  {
+    title: 'Plain English deployments',
+    body: 'Describe the cluster you want, let the agent turn it into a BigConfig package, ship it to production.',
+    icon: 'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z',
+  },
+];
+---
+
+<Layout
+  title="ClickHouse by BigConfig — Own your data warehouse"
+  description="Migrate off Snowflake, Redshift, and BigQuery. Deploy ClickHouse anywhere with plain English, operated by your agent."
+>
+  <section class="mx-auto max-w-6xl px-6 pt-20 pb-28 text-center">
+    <div
+      class="mb-6 inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/60 px-4 py-1.5 text-xs font-medium text-neutral-300"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-yellow-400"></span>
+      BigConfig package · ClickHouse
+    </div>
+    <h1
+      class="mx-auto max-w-4xl text-5xl font-semibold tracking-tight text-white md:text-7xl"
+    >
+      Your data warehouse,<br />
+      <span
+        class="bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500 bg-clip-text text-transparent"
+        >on your infrastructure.</span
+      >
+    </h1>
+    <p class="mx-auto mt-6 max-w-2xl text-lg text-neutral-300 md:text-xl">
+      Stop overpaying Snowflake, Redshift, and BigQuery. Deploy open-source
+      ClickHouse anywhere — described in plain English, operated by your agent.
+    </p>
+    <div
+      class="mx-auto mt-10 flex max-w-md flex-col items-stretch justify-center gap-4 px-4 sm:max-w-none sm:flex-row sm:items-center sm:px-0"
+    >
+      <a
+        href="#contact"
+        class="rounded-full bg-yellow-400 px-8 py-4 text-center text-base font-semibold text-neutral-950 transition hover:bg-yellow-300"
+      >
+        Contact for pricing
+      </a>
+      <a
+        href="#features"
+        class="rounded-full border border-neutral-700 px-8 py-4 text-center text-base font-semibold text-neutral-200 transition hover:border-neutral-500 hover:text-white"
+      >
+        See what's inside
+      </a>
+    </div>
+    <p class="mt-6 text-sm text-neutral-500">
+      For teams whose DWH bill has outgrown the value it returns.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-6 py-12">
+    <div
+      class="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-800 md:grid-cols-4"
+    >
+      {
+        [
+          ['10×', 'typical cost reduction vs. managed DWH'],
+          ['Any', 'cloud, kubernetes, or bare metal'],
+          ['Zero', 'click-ops — your agent runs it'],
+          ['100%', 'open-source engine, your data'],
+        ].map(([stat, label]) => (
+          <div class="bg-neutral-950 p-6 text-center">
+            <div class="text-3xl font-semibold text-white md:text-4xl">{stat}</div>
+            <div class="mt-2 text-xs uppercase tracking-wider text-neutral-400">{label}</div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section id="features" class="mx-auto max-w-6xl px-6 py-24">
+    <div class="mb-16 text-center">
+      <div
+        class="mb-4 inline-block text-xs font-semibold uppercase tracking-widest text-yellow-400"
+      >
+        What you get
+      </div>
+      <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        A ClickHouse platform,<br />not a pile of YAML.
+      </h2>
+      <p class="mx-auto mt-4 max-w-2xl text-neutral-400">
+        The BigConfig ClickHouse package is everything you'd build yourself in
+        six months of platform engineering — ready to deploy today.
+      </p>
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {
+        features.map((f) => (
+          <div class="group rounded-2xl border border-neutral-800 bg-neutral-900/40 p-8 transition hover:border-yellow-400/40 hover:bg-neutral-900">
+            <div class="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-yellow-400/10 text-yellow-400 ring-1 ring-yellow-400/20">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d={f.icon} />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-white">{f.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-neutral-400">{f.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section id="how" class="mx-auto max-w-6xl px-6 py-24">
+    <div class="rounded-3xl border border-neutral-800 bg-neutral-900/40 p-10 md:p-16">
+      <div
+        class="mb-4 text-xs font-semibold uppercase tracking-widest text-yellow-400"
+      >
+        How it works
+      </div>
+      <h2 class="max-w-3xl text-3xl font-semibold tracking-tight text-white md:text-4xl">
+        Three steps to leave your managed warehouse behind.
+      </h2>
+      <ol class="mt-12 grid list-none gap-10 pl-0 md:grid-cols-3">
+        <li>
+          <div class="mb-3 text-sm font-semibold text-yellow-400">01 — Describe</div>
+          <h3 class="text-lg font-semibold text-white">Tell your agent what you want</h3>
+          <p class="mt-2 text-sm text-neutral-400">
+            Size, replication, retention, network boundaries. Your agent turns
+            the conversation into a BigConfig ClickHouse package tailored to your needs.
+          </p>
+        </li>
+        <li>
+          <div class="mb-3 text-sm font-semibold text-yellow-400">02 — Deploy</div>
+          <h3 class="text-lg font-semibold text-white">Ship it to your infrastructure</h3>
+          <p class="mt-2 text-sm text-neutral-400">
+            The package provisions ClickHouse wherever you run — cloud,
+            kubernetes, or bare metal. No lock-in, no black boxes.
+          </p>
+        </li>
+        <li>
+          <div class="mb-3 text-sm font-semibold text-yellow-400">03 — Delegate</div>
+          <h3 class="text-lg font-semibold text-white">Hand ops over to the agent</h3>
+          <p class="mt-2 text-sm text-neutral-400">
+            Backups, upgrades, scaling, incident response — every runbook is a
+            BigConfig workflow your agent can execute on your behalf.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="contact" class="mx-auto max-w-3xl px-6 py-24">
+    <div class="text-center">
+      <div
+        class="mb-4 inline-block text-xs font-semibold uppercase tracking-widest text-yellow-400"
+      >
+        Get access
+      </div>
+      <h2 class="text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        Contact for pricing
+      </h2>
+      <p class="mx-auto mt-4 max-w-xl text-neutral-400">
+        Tell us about your current warehouse and your team. We'll get back to
+        you with pricing and a migration plan.
+      </p>
+    </div>
+
+    <form
+      id="clickhouse-form"
+      class="mt-12 grid gap-5 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-8 md:p-10"
+    >
+      <div class="grid gap-5 md:grid-cols-2">
+        <label class="block text-sm">
+          <span class="mb-2 block font-medium text-neutral-200">Name</span>
+          <input
+            name="name"
+            type="text"
+            required
+            class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:border-yellow-400"
+            placeholder="Jane Doe"
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-2 block font-medium text-neutral-200">Work email</span>
+          <input
+            name="email"
+            type="email"
+            required
+            class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:border-yellow-400"
+            placeholder="jane@company.com"
+          />
+        </label>
+      </div>
+      <label class="block text-sm">
+        <span class="mb-2 block font-medium text-neutral-200">Company</span>
+        <input
+          name="company"
+          type="text"
+          required
+          class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:border-yellow-400"
+          placeholder="Acme Inc."
+        />
+      </label>
+      <div class="grid gap-5 md:grid-cols-2">
+        <label class="block text-sm">
+          <span class="mb-2 block font-medium text-neutral-200">Current DWH</span>
+          <select
+            name="currentDwh"
+            required
+            class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
+          >
+            <option value="">Select one…</option>
+            <option value="snowflake">Snowflake</option>
+            <option value="redshift">Redshift</option>
+            <option value="bigquery">BigQuery</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label class="block text-sm">
+          <span class="mb-2 block font-medium text-neutral-200">Team size</span>
+          <select
+            name="teamSize"
+            required
+            class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
+          >
+            <option value="">Select one…</option>
+            <option value="1-10">1–10</option>
+            <option value="11-50">11–50</option>
+            <option value="51-200">51–200</option>
+            <option value="201-1000">201–1000</option>
+            <option value="1000+">1000+</option>
+          </select>
+        </label>
+      </div>
+      <label class="block text-sm">
+        <span class="mb-2 block font-medium text-neutral-200">Message</span>
+        <textarea
+          name="message"
+          rows="4"
+          required
+          class="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-4 py-3 text-white placeholder-neutral-500 outline-none focus:border-yellow-400"
+          placeholder="What are your requirements? What's driving the migration?"></textarea>
+      </label>
+      <button
+        type="submit"
+        class="mt-2 rounded-full bg-yellow-400 px-6 py-4 text-base font-semibold text-neutral-950 transition hover:bg-yellow-300 disabled:opacity-60"
+      >
+        Request pricing
+      </button>
+      <p
+        id="clickhouse-form-status"
+        class="hidden text-center text-sm text-neutral-400"
+      >
+      </p>
+    </form>
+  </section>
+</Layout>
+
+<script is:inline>
+  const form = document.getElementById('clickhouse-form');
+  const status = document.getElementById('clickhouse-form-status');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const button = form.querySelector('button[type=submit]');
+    const data = Object.fromEntries(new FormData(form).entries());
+    button.disabled = true;
+    status.classList.remove('hidden');
+    status.textContent = 'Sending…';
+    try {
+      const res = await fetch('https://forms.bigconfig.ai/form/clickhouse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('bad status ' + res.status);
+      status.textContent = "Thanks — we'll be in touch shortly.";
+      form.reset();
+    } catch (err) {
+      status.textContent =
+        "Something went wrong. Email clickhouse@bigconfig.ai and we'll sort it out.";
+      button.disabled = false;
+    }
+  });
+</script>

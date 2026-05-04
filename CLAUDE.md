@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-A marketplace for "bigconfig" packages and ONCE-compatible applications, built as a single Docker image that bundles a PocketBase backend with a statically-built Astro frontend served from `pb_public`.
+A marketplace for "bigconfig" packages and ONCE-ready applications, built as a single Docker image that bundles a PocketBase backend with a statically-built Astro frontend served from `pb_public`.
 
 - **`web/`** — Astro 6 static site (Tailwind v4 via PostCSS plugin). `astro.config.mjs` outputs to `../pocketbase/pb_public` so `astro build` writes directly into PocketBase's static-serve directory. Talks to PocketBase at `PUBLIC_PB_URL` via the `pocketbase` JS SDK (`web/src/lib/pb.ts`).
 - **`pocketbase/`** — PocketBase v0.23+ (tested on v0.37.4). Schema is defined in `pb_migrations/`; server-side logic lives in `pb_hooks/` as JSVM scripts.
@@ -14,7 +14,7 @@ A marketplace for "bigconfig" packages and ONCE-compatible applications, built a
 - **`Procfile.prod`** — Production process list copied into the image as `/app/Procfile`: Caddy plus `entrypoint.sh`.
 - **`entrypoint.sh`** — Creates `/storage/pb_data`, restores SQLite from Litestream if needed, optionally upserts a PocketBase superuser with explicit production directories, then runs PocketBase under `litestream replicate -exec`.
 - **`litestream.yml`** — S3 replica config for `/storage/pb_data/data.db`.
-- **`Dockerfile`** — Two stages: build the Astro site with `PUBLIC_PB_URL` baked in (default `https://localhost`), then assemble an ONCE-compatible Alpine image with latest Caddy, PocketBase, Litestream, Hivemind, migrations, hooks, and the built static site.
+- **`Dockerfile`** — Two stages: build the Astro site with `PUBLIC_PB_URL` baked in (default `https://localhost`), then assemble an ONCE-ready Alpine image with latest Caddy, PocketBase, Litestream, Hivemind, migrations, hooks, and the built static site.
 - **`plans/`** — Numbered markdown planning documents capturing design decisions.
 
 ## Data Collections
@@ -146,7 +146,7 @@ The `pocketbase` binary is gitignored — download from https://github.com/pocke
 
 `PUBLIC_PB_URL` is inlined into the static bundle at build time and must be the absolute origin (scheme + host) where the browser will reach PocketBase. The Dockerfile defaults it to `https://localhost`; override with `--build-arg PUBLIC_PB_URL=<your-origin>` for prod. Empty or relative values make the PocketBase SDK emit page-path-relative URLs at runtime — e.g. on `/login` it calls `/login/api/...` instead of `/api/...` — which breaks Google SSO.
 
-The runtime image is ONCE-compatible: Caddy listens on `:80`, `/up` returns `OK`, and only PocketBase data is persistent at `/storage/pb_data`. `pb_public` remains baked into `/pb/pb_public`.
+The runtime image is ONCE-ready: Caddy listens on `:80`, `/up` returns `OK`, and only PocketBase data is persistent at `/storage/pb_data`. `pb_public` remains baked into `/pb/pb_public`.
 
 Production deliberately uses different PocketBase paths than dev because ONCE-compatible applications must serve HTTP on port `80`, expose `/up`, and keep persistent data under `/storage` (see https://github.com/basecamp/once#making-a-once-compatible-application). Dev uses the default project-local layout under `pocketbase/`; production passes every PocketBase directory explicitly:
 

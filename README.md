@@ -39,7 +39,7 @@ proxies everything else to PocketBase on `:8090`. PocketBase serves `/api/*`,
 ├── Procfile.prod                   # production caddy + litestream process list
 ├── entrypoint.sh                   # restore DB, upsert superuser, run PB via Litestream
 ├── litestream.yml                  # S3 replica config
-└── Dockerfile                      # ONCE-compatible runtime image
+└── Dockerfile                      # ONCE-ready runtime image
 ```
 
 ## Prerequisites
@@ -135,7 +135,7 @@ docker run -p 80:80 \
   bigconfig-marketplace
 ```
 
-The image is ONCE-compatible: it listens on `:80`, responds to `GET /up`, and
+The image is ONCE-ready: it listens on `:80`, responds to `GET /up`, and
 stores persistent PocketBase data under `/storage/pb_data`. The static site is
 baked into the image at `/pb/pb_public`; only the SQLite data directory moved to
 `/storage`.
@@ -150,7 +150,7 @@ Development keeps PocketBase's conventional project-local layout:
 - migrations: `pocketbase/pb_migrations`
 
 Production uses explicit absolute paths because
-[ONCE-compatible applications](https://github.com/basecamp/once#making-a-once-compatible-application)
+[ONCE-ready applications](https://github.com/basecamp/once#making-a-once-ready-application)
 must serve HTTP on port `80`, expose `/up`, and keep persistent data under
 `/storage`. The container starts PocketBase with:
 
