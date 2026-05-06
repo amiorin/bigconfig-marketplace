@@ -49,3 +49,23 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           no-cache-filters: web
+
+      - name: Deploy via SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ubuntu
+          HOST: marketplace.bigconfig.ai
+        run: |
+          # Create the .ssh directory and start the agent
+          mkdir -p ~/.ssh
+          eval $(ssh-agent -s)
+
+          # Add the private key to the agent
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+
+          # Add the server to known_hosts to avoid manual confirmation
+          ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts
+
+          # Execute the commands on the remote server
+          ssh $SERVER_USER@$SERVER_IP "sudo once update $HOST"
