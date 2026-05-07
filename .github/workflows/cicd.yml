@@ -6,35 +6,29 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  build:
+  build-arm:
     runs-on: ubuntu-24.04-arm
-    permissions:
-      contents: read
-      packages: write
+    outputs:
+      short_sha: ${{ steps.sha.outputs.short }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Compute short sha
+        id: sha
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest
-            type=sha
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -44,12 +38,89 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: |
+            ghcr.io/${{ github.repository }}:arm
+            ghcr.io/${{ github.repository }}:sha-${{ steps.sha.outputs.short }}-arm
+          provenance: false
+          cache-from: type=gha,scope=arm
+          cache-to: type=gha,mode=max,scope=arm
           no-cache-filters: web
 
+  build-amd:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Compute short sha
+        id: sha
+        run: echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:amd
+            ghcr.io/${{ github.repository }}:sha-${{ steps.sha.outputs.short }}-amd
+          provenance: false
+          cache-from: type=gha,scope=amd
+          cache-to: type=gha,mode=max,scope=amd
+          no-cache-filters: web
+
+  manifest:
+    runs-on: ubuntu-24.04-arm
+    needs:
+      - build-arm
+      - build-amd
+    env:
+      SHORT_SHA: ${{ needs.build-arm.outputs.short_sha }}
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish the latest manifest
+        run: >-
+          docker manifest create ghcr.io/${{ github.repository }}:latest
+          ghcr.io/${{ github.repository }}:arm
+          ghcr.io/${{ github.repository }}:amd
+          && docker manifest annotate ghcr.io/${{ github.repository }}:latest
+          ghcr.io/${{ github.repository }}:arm --os linux --arch arm64
+          && docker manifest annotate ghcr.io/${{ github.repository }}:latest
+          ghcr.io/${{ github.repository }}:amd --os linux --arch amd64
+          && docker manifest push ghcr.io/${{ github.repository }}:latest
+
+      - name: Publish the sha manifest
+        run: >-
+          docker manifest create ghcr.io/${{ github.repository }}:sha-${SHORT_SHA}
+          ghcr.io/${{ github.repository }}:sha-${SHORT_SHA}-arm
+          ghcr.io/${{ github.repository }}:sha-${SHORT_SHA}-amd
+          && docker manifest annotate ghcr.io/${{ github.repository }}:sha-${SHORT_SHA}
+          ghcr.io/${{ github.repository }}:sha-${SHORT_SHA}-arm --os linux --arch arm64
+          && docker manifest annotate ghcr.io/${{ github.repository }}:sha-${SHORT_SHA}
+          ghcr.io/${{ github.repository }}:sha-${SHORT_SHA}-amd --os linux --arch amd64
+          && docker manifest push ghcr.io/${{ github.repository }}:sha-${SHORT_SHA}
+
+  deploy:
+    runs-on: ubuntu-24.04-arm
+    needs:
+      - manifest
+    steps:
       - name: Deploy via SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
