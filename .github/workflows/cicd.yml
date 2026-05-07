@@ -125,7 +125,7 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
-          SERVER_USER: ubuntu
+          SERVER_USER: deploy
           HOST: marketplace.bigconfig.ai
         run: |
           # Create the .ssh directory and start the agent
