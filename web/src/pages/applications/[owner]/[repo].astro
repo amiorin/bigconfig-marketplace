@@ -42,11 +42,11 @@ Steps:
 - create the .envrc file for the environment variables
 - don't create the deps.edn file
 - add Once BigConfig Package as a dependency to bb.edn
-- create only one task to create and delete the package
+- create only the public tasks inside bb.edn using Once BigConfig Package bb.edn as reference
 - vendor the options inside the bb.edn file
 - all environment variables start with BC_PAR_
 - ask me to confirm all the options
-- after I confirm the generated bb.edn, run bb package create, watch the output, and iterate on failures. Also tell me how to tear it down with bb once delete`;
+- after I confirm the generated bb.edn, run bb validate, run bb package create, watch the output, and iterate on failures. Also tell me how to tear it down with bb once delete`;
 ---
 
 <Layout title={`${app.name} — BigConfig Marketplace`} description={app.description}>
