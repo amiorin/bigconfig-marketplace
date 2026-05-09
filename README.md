@@ -173,6 +173,10 @@ Required Litestream runtime variables:
 - `LITESTREAM_REGION`
 - `LITESTREAM_ACCESS_KEY_ID`
 - `LITESTREAM_SECRET_ACCESS_KEY`
+- `LITESTREAM_SYNC_INTERVAL` — how often Litestream flushes WAL changes to the
+  replica (e.g. `1s`, `10s`). Required: `litestream.yml` substitutes this
+  directly into `sync-interval`, and an empty value fails duration parsing at
+  startup.
 
 Optional runtime variables:
 

@@ -169,6 +169,7 @@ Use the same explicit directory flags for `pocketbase superuser upsert`.
 - `DISPATCH_REPO` — target repository in `owner/repo` form that receives the `repository_dispatch` event (`event_type: rebuild-site`).
 - `DISPATCH_PAT` — GitHub Personal Access Token with `repo` scope on `DISPATCH_REPO`, used to POST `/repos/{owner}/{repo}/dispatches`. Without both vars `dispatchRebuild()` logs and skips.
 - `LITESTREAM_BUCKET`, `LITESTREAM_PATH`, `LITESTREAM_REGION`, `LITESTREAM_ACCESS_KEY_ID`, `LITESTREAM_SECRET_ACCESS_KEY` — required in the production container.
+- `LITESTREAM_SYNC_INTERVAL` — required: WAL flush interval (e.g. `1s`, `10s`). `litestream.yml` substitutes it directly into `sync-interval`; an empty value fails duration parsing at startup.
 - `LITESTREAM_ENDPOINT` — optional S3-compatible endpoint.
 - `SUPERUSER_EMAIL` / `SUPERUSER_PASSWORD` — optional; when both are set, the container upserts the PocketBase superuser on start.
 
