@@ -10,10 +10,11 @@ A marketplace for "bigconfig" packages and ONCE-compatible applications, built a
 - **`pocketbase/`** — PocketBase v0.23+ (tested on v0.37.4). Schema is defined in `pb_migrations/`; server-side logic lives in `pb_hooks/` as JSVM scripts.
 - **`Caddyfile`** — Dev reverse proxy: `/api*` and `/_*` to PocketBase (`:8090`), everything else to the Astro dev server (`:4321`).
 - **`Caddyfile.prod`** — Production Caddy config copied into the image as `/etc/caddy/Caddyfile`. Listens on `:80`, serves `GET /up` for ONCE, and reverse-proxies everything else to PocketBase on `:8090`.
-- **`Procfile`** — Runs `pb`, `web` (astro dev), and `caddy` together via `hivemind`.
+- **`Procfile`** — Runs `pb` (via `entrypoint.dev.sh`, which wraps PocketBase in Litestream), `web` (astro dev), and `caddy` together via `hivemind`.
 - **`Procfile.prod`** — Production process list copied into the image as `/app/Procfile`: Caddy plus `entrypoint.sh`.
-- **`entrypoint.sh`** — Creates `/storage/pb_data`, restores SQLite from Litestream if needed, optionally upserts a PocketBase superuser with explicit production directories, then runs PocketBase under `litestream replicate -exec`.
-- **`litestream.yml`** — S3 replica config for `/storage/pb_data/data.db`.
+- **`entrypoint.sh`** — Production entrypoint. Creates `/storage/pb_data`, restores SQLite from Litestream if needed, optionally upserts a PocketBase superuser with explicit production directories, then runs PocketBase under `litestream replicate -exec`. Sets `LITESTREAM_DB_PATH=/storage/pb_data/data.db` for `litestream.yml` to consume.
+- **`entrypoint.dev.sh`** — Dev counterpart. `cd`s into `pocketbase/`, sets `LITESTREAM_DB_PATH=$PWD/pb_data/data.db`, runs the same `litestream restore -if-db-not-exists -if-replica-exists` then `litestream replicate -exec "pocketbase serve --dev"`. Exercises the prod boot path locally against each developer's S3 dev bucket.
+- **`litestream.yml`** — S3 replica config; `path:` is parameterized as `${LITESTREAM_DB_PATH}` so dev and prod share one config. The entrypoint scripts set `LITESTREAM_DB_PATH` per-environment.
 - **`Dockerfile`** — Two stages: build the Astro site with `PUBLIC_PB_URL` baked in (default `https://localhost`), then assemble an ONCE-compatible Alpine image with latest Caddy, PocketBase, Litestream, Hivemind, migrations, hooks, and the built static site.
 - **`plans/`** — Numbered markdown planning documents capturing design decisions.
 
@@ -168,9 +169,10 @@ Use the same explicit directory flags for `pocketbase superuser upsert`.
 - `GITHUB_TOKEN` — optional, raises rate limit for the GitHub API enrichment in `utils.js`.
 - `DISPATCH_REPO` — target repository in `owner/repo` form that receives the `repository_dispatch` event (`event_type: rebuild-site`).
 - `DISPATCH_PAT` — GitHub Personal Access Token with `repo` scope on `DISPATCH_REPO`, used to POST `/repos/{owner}/{repo}/dispatches`. Without both vars `dispatchRebuild()` logs and skips.
-- `LITESTREAM_BUCKET`, `LITESTREAM_PATH`, `LITESTREAM_REGION`, `LITESTREAM_ACCESS_KEY_ID`, `LITESTREAM_SECRET_ACCESS_KEY` — required in the production container.
+- `LITESTREAM_BUCKET`, `LITESTREAM_PATH`, `LITESTREAM_REGION`, `LITESTREAM_ACCESS_KEY_ID`, `LITESTREAM_SECRET_ACCESS_KEY` — required in both the production container and local dev (the `pb` Procfile entry runs `entrypoint.dev.sh`, which invokes `litestream replicate -exec`). To run dev without Litestream, comment out the `pb:` line in `Procfile` and start PocketBase manually.
 - `LITESTREAM_SYNC_INTERVAL` — required: WAL flush interval (e.g. `1s`, `10s`). `litestream.yml` substitutes it directly into `sync-interval`; an empty value fails duration parsing at startup.
 - `LITESTREAM_ENDPOINT` — optional S3-compatible endpoint.
+- `LITESTREAM_DB_PATH` — set automatically by `entrypoint.sh` (`/storage/pb_data/data.db`) and `entrypoint.dev.sh` (`pocketbase/pb_data/data.db`). Don't set it manually; `litestream.yml` reads it as the source DB path.
 - `SUPERUSER_EMAIL` / `SUPERUSER_PASSWORD` — optional; when both are set, the container upserts the PocketBase superuser on start.
 
 ## Key conventions

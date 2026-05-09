@@ -1,5 +1,5 @@
 dbs:
-  - path: /storage/pb_data/data.db
+  - path: ${LITESTREAM_DB_PATH}
     replica:
       type: s3
       bucket: ${LITESTREAM_BUCKET}

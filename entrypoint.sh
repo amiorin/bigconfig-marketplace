@@ -6,13 +6,15 @@ PB_PUBLIC_DIR=/pb/pb_public
 PB_HOOKS_DIR=/pb/pb_hooks
 PB_MIGRATIONS_DIR=/pb/pb_migrations
 
+export LITESTREAM_DB_PATH="$PB_DATA_DIR/data.db"
+
 mkdir -p "$PB_DATA_DIR"
 
 litestream restore \
 	-config /etc/litestream.yml \
 	-if-db-not-exists \
 	-if-replica-exists \
-	"$PB_DATA_DIR/data.db"
+	"$LITESTREAM_DB_PATH"
 
 if [ -n "${SUPERUSER_EMAIL:-}" ] && [ -n "${SUPERUSER_PASSWORD:-}" ]; then
 	pocketbase superuser upsert "$SUPERUSER_EMAIL" "$SUPERUSER_PASSWORD" \

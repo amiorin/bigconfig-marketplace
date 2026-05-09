@@ -1,3 +1,3 @@
-pb: cd pocketbase && pocketbase serve --dev
+pb: ./entrypoint.dev.sh
 web: cd web && npm run dev
 caddy: caddy run

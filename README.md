@@ -35,10 +35,11 @@ proxies everything else to PocketBase on `:8090`. PocketBase serves `/api/*`,
 ├── web/                            # Astro project (outDir → ../pocketbase/pb_public)
 ├── Caddyfile                       # dev reverse proxy
 ├── Caddyfile.prod                  # production Caddy config copied into image
-├── Procfile                        # pb + web + caddy
+├── Procfile                        # pb (litestream-wrapped) + web + caddy
 ├── Procfile.prod                   # production caddy + litestream process list
-├── entrypoint.sh                   # restore DB, upsert superuser, run PB via Litestream
-├── litestream.yml                  # S3 replica config
+├── entrypoint.sh                   # prod: restore DB, upsert superuser, run PB via Litestream
+├── entrypoint.dev.sh               # dev: restore DB + run PB via Litestream
+├── litestream.yml                  # S3 replica config (shared dev + prod)
 └── Dockerfile                      # ONCE-compatible runtime image
 ```
 
@@ -48,6 +49,10 @@ proxies everything else to PocketBase on `:8090`. PocketBase serves `/api/*`,
 - [Node.js 22+](https://nodejs.org/) — for the Astro build
 - [PocketBase](https://github.com/pocketbase/pocketbase/releases)
 - [Caddy](https://caddyserver.com/)
+- [Litestream](https://litestream.io/install/) — `brew install benbjohnson/litestream/litestream`
+  on macOS; download the `litestream-<ver>-linux-<arch>.tar.gz` from the
+  [GitHub releases](https://github.com/benbjohnson/litestream/releases) and put
+  it on `$PATH` on Linux.
 - A Procfile runner: [hivemind](https://github.com/DarthSim/hivemind)
 
 ## Setup
@@ -68,6 +73,16 @@ Edit `.envrc` for your environment. Required vars:
   providers → Google. The `.envrc.example` entries exist as a reference
   holder.
 
+Required for Litestream (dev replicates to your own S3 dev bucket so the prod
+restore + replicate path is exercised locally):
+
+- `LITESTREAM_BUCKET`, `LITESTREAM_PATH`, `LITESTREAM_REGION`,
+  `LITESTREAM_ACCESS_KEY_ID`, `LITESTREAM_SECRET_ACCESS_KEY`,
+  `LITESTREAM_SYNC_INTERVAL` — see the **Docker** section for what each
+  controls. Use a per-developer `LITESTREAM_PATH` (e.g. `dev/$USER/data.db`) to
+  avoid stomping on other devs in a shared bucket.
+- `LITESTREAM_ENDPOINT` — optional S3-compatible endpoint (R2, MinIO, etc.).
+
 Optional:
 
 - `GITHUB_TOKEN` — raises rate limit for hook-side GitHub enrichment.
@@ -87,14 +102,23 @@ hivemind                                  # runs pb + web + caddy
 That gives you:
 
 - Astro dev server on `:4321`
-- PocketBase on `:8090` (admin at `http://127.0.0.1:8090/_/`)
+- PocketBase on `:8090` (admin at `http://127.0.0.1:8090/_/`), wrapped by
+  Litestream via `entrypoint.dev.sh` — on startup it restores
+  `pocketbase/pb_data/data.db` from your S3 dev bucket if the local file is
+  missing and a replica exists, then continuously streams writes back. This
+  mirrors the production boot path so Litestream regressions surface locally.
 - Caddy on `https://localhost` proxying `/api*` and `/_*` to PB, the rest to
   Astro
+
+The `pb` process will fail to start until the `LITESTREAM_*` vars in `.envrc`
+are filled in (see the **Setup** section). To run dev without Litestream
+entirely, comment out the `pb:` line in `Procfile` and start PocketBase
+manually with `cd pocketbase && ./pocketbase serve --dev`.
 
 Or run them individually:
 
 ```sh
-cd pocketbase && ./pocketbase serve
+./entrypoint.dev.sh                       # litestream-wrapped pocketbase
 cd web && npm run dev
 caddy run
 ```

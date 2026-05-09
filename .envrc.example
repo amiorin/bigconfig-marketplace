@@ -31,3 +31,20 @@ export DISPATCH_PAT=
 
 # Make Node (Astro dev SSG fetch) trust Caddy's local CA.
 export NODE_EXTRA_CA_CERTS="$HOME/Library/Application Support/Caddy/pki/authorities/local/root.crt"
+
+# Litestream — dev replicates `pocketbase/pb_data/data.db` to your own S3 dev
+# bucket so the prod restore + replicate path is exercised locally. The dev
+# entrypoint (`entrypoint.dev.sh`) wraps PocketBase in `litestream replicate
+# -exec`, so `hivemind` will fail to start the `pb` process unless these are
+# set. To run dev without Litestream, comment out the `pb:` line in `Procfile`
+# and run `cd pocketbase && pocketbase serve --dev` manually instead.
+# Use a per-developer LITESTREAM_PATH prefix to avoid stomping on each other
+# inside a shared bucket. LITESTREAM_DB_PATH is set automatically by
+# entrypoint.dev.sh / entrypoint.sh — don't set it here.
+export LITESTREAM_BUCKET=
+export LITESTREAM_PATH=dev/$USER/data.db
+export LITESTREAM_REGION=us-east-1
+export LITESTREAM_ENDPOINT=
+export LITESTREAM_ACCESS_KEY_ID=
+export LITESTREAM_SECRET_ACCESS_KEY=
+export LITESTREAM_SYNC_INTERVAL=1s
